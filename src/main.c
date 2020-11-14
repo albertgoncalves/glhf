@@ -81,6 +81,10 @@ static void set_file(Memory* memory, const char* filename) {
     fclose(file);
 }
 
+static void framebuffer_size_callback(GLFWwindow* _, i32 width, i32 height) {
+    glViewport(0, 0, width, height);
+}
+
 static GLFWwindow* get_window(const char* name) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -92,6 +96,8 @@ static GLFWwindow* get_window(const char* name) {
         ERROR("!window");
     }
     glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetWindowAspectRatio(window, WINDOW_WIDTH, WINDOW_HEIGHT);
     glfwSwapInterval(1);
     return window;
 }
@@ -134,6 +140,7 @@ static u32 get_program(Memory* memory,
     }
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
+    glUseProgram(program);
     return program;
 }
 
@@ -200,12 +207,11 @@ i32 main(i32 n, const char** args) {
     if (!glfwInit()) {
         ERROR("!glfwInit()");
     }
-    GLFWwindow* window = get_window("main");
+    GLFWwindow* window = get_window("float");
     u32         program = get_program(memory,
                               get_shader(memory, args[1], GL_VERTEX_SHADER),
                               get_shader(memory, args[2], GL_FRAGMENT_SHADER));
     set_objects();
-    glUseProgram(program);
     loop(window);
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
