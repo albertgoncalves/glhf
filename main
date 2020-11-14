@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+flags=(
+    "-fshort-enums"
+    "-fsingle-precision-constant"
+    "-march=native"
+    "-O1"
+    "-Wall"
+    "-Wcast-align"
+    "-Wcast-align=strict"
+    "-Wcast-qual"
+    "-Wconversion"
+    "-Wdate-time"
+    "-Wduplicated-branches"
+    "-Wduplicated-cond"
+    "-Werror"
+    "-Wextra"
+    "-Wfatal-errors"
+    "-Wfloat-equal"
+    "-Wformat-signedness"
+    "-Wformat=2"
+    "-Winline"
+    "-Wlogical-op"
+    "-Wmissing-declarations"
+    "-Wmissing-include-dirs"
+    "-Wnull-dereference"
+    "-Wpacked"
+    "-Wpedantic"
+    "-Wpointer-arith"
+    "-Wredundant-decls"
+    "-Wshadow"
+    "-Wstack-protector"
+    "-Wswitch-enum"
+    "-Wtrampolines"
+    "-Wundef"
+    "-Wunused"
+    "-Wunused-macros"
+    "-Wwrite-strings"
+)
+
+# for x in "$WD"/src/*.h; do
+#     cppcheck "$x" | sed 's/\/.*\/\(.*\) \.\.\./\1/g'
+# done
+cppcheck \
+    --enable=all \
+    --suppress=missingIncludeSystem \
+    "$WD/src" \
+    | sed 's/\/.*\/\(.*\) \.\.\./\1/g'
+clang-format -i -verbose "$WD/src"/*.glsl 2>&1 | sed 's/\/.*\///g'
+clang-format -i -verbose "$WD/src"/*.c 2>&1 | sed 's/\/.*\///g'
+# clang-format -i -verbose "$WD/src"/*.h 2>&1 | sed 's/\/.*\///g'
+
+now () {
+    date +%s.%N
+}
+
+start=$(now)
+gcc \
+    -I"${PATH_GLFW}/include" \
+    -L"${PATH_GLFW}/lib" \
+    -L"${PATH_LIBGL}/lib" \
+    -lglfw \
+    -lGL \
+    "${flags[@]}" \
+    -o "$WD/bin/main" \
+    "$WD/src/main.c"
+end=$(now)
+python3 -c "print(\"Compiled! ({:.3f}s)\n\".format(${end} - ${start}))"
+
+"$WD/bin/main" "$WD/src/vert.glsl" "$WD/src/frag.glsl" || echo $?

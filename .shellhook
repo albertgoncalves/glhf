@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -e
+
+expression=$(grep "export" < nixGL/result/bin/nixGL*)
+if [ -n "$expression" ]; then
+    eval "$expression"
+fi
+
+if [ ! -d "$WD/bin" ]; then
+    mkdir "$WD/bin"
+fi
+
+set +e

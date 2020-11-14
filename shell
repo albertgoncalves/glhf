@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+export WD=$PWD
+
+if [ ! -d "$WD/nixGL" ]; then
+    git clone https://github.com/albertgoncalves/nixGL.git
+    (
+        cd "$WD/nixGL" || exit 1
+        if grep -iq "nvidia" "/var/log/Xorg.0.log"; then
+            driver_version=$(
+                grep "X Driver" /var/log/Xorg.0.log \
+                    | sed 's/^.*X Driver  \(\S*\)\s*.*/\1/'
+            )
+            ./nvidiaInstall.py "$driver_version" nixGLNvidia
+        else
+            nix-build -A nixGLIntel
+        fi
+    )
+fi
+
+set +euo pipefail
+
+nix-shell
