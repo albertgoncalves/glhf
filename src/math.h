@@ -38,7 +38,7 @@ static Simd4F32 linear_combine(Simd4F32 l, Mat4 r) {
     return out;
 }
 
-static Mat4 mul_mat4_mat4(Mat4 l, Mat4 r) {
+static Mat4 mul_mat4(Mat4 l, Mat4 r) {
     Mat4 out;
     out.column[0] = linear_combine(r.column[0], l);
     out.column[1] = linear_combine(r.column[1], l);

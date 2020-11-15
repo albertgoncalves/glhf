@@ -59,6 +59,26 @@ static const Vec3 TRANSFORM_SCALE = {
     .z = 1.5f,
 };
 
+static void set_static_uniforms(Uniform uniform) {
+    MODEL = rotate_mat4(get_radians(-55.0f), MODEL_AXIS);
+    glUniformMatrix4fv(uniform.model, 1, FALSE, &MODEL.cell[0][0]);
+    VIEW = translate_mat4(VIEW_TRANSLATION);
+    glUniformMatrix4fv(uniform.view, 1, FALSE, &VIEW.cell[0][0]);
+    PROJECTION = perspective_mat4(get_radians(45.0f),
+                                  (f32)WINDOW_WIDTH / (f32)WINDOW_HEIGHT,
+                                  0.1f,
+                                  100.0f);
+    glUniformMatrix4fv(uniform.projection, 1, FALSE, &PROJECTION.cell[0][0]);
+}
+
+static void set_dynamic_uniforms(Uniform uniform, State state) {
+    glUniform1f(uniform.time, state.time);
+    TRANSFORM = mul_mat4(
+        rotate_mat4(get_radians((f32)state.time * 25.0f), TRANSFORM_AXIS),
+        scale_mat4(TRANSFORM_SCALE));
+    glUniformMatrix4fv(uniform.transform, 1, FALSE, &TRANSFORM.cell[0][0]);
+}
+
 static void set_input(GLFWwindow* window) {
     glfwPollEvents();
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -72,6 +92,21 @@ static void draw(GLFWwindow* window) {
     glfwSwapBuffers(window);
 }
 
+static void set_frame(Frame* frame) {
+    frame->step = (f32)glfwGetTime() * MICROSECONDS;
+    frame->elapsed = (frame->step - frame->start);
+    if (frame->elapsed < FRAME_DURATION) {
+        usleep((u32)(FRAME_DURATION - frame->elapsed));
+    }
+    if (++frame->fps_count == 30) {
+        printf("\033[1A%10.4f fps\n",
+               frame->fps_count / (frame->step - frame->fps_start) *
+                   MICROSECONDS);
+        frame->fps_start = frame->start;
+        frame->fps_count = 0;
+    }
+}
+
 static void loop(GLFWwindow* window, u32 program) {
     State   state = {0};
     Frame   frame = {0};
@@ -82,39 +117,16 @@ static void loop(GLFWwindow* window, u32 program) {
         .projection = glGetUniformLocation(program, "U_PROJECTION"),
         .transform = glGetUniformLocation(program, "U_TRANSFORM"),
     };
-    MODEL = rotate_mat4(get_radians(-55.0f), MODEL_AXIS);
-    VIEW = translate_mat4(VIEW_TRANSLATION);
-    PROJECTION = perspective_mat4(get_radians(45.0f),
-                                  (f32)WINDOW_WIDTH / (f32)WINDOW_HEIGHT,
-                                  0.1f,
-                                  100.0f);
-    glUniformMatrix4fv(uniform.model, 1, FALSE, &MODEL.cell[0][0]);
-    glUniformMatrix4fv(uniform.view, 1, FALSE, &VIEW.cell[0][0]);
-    glUniformMatrix4fv(uniform.projection, 1, FALSE, &PROJECTION.cell[0][0]);
+    set_static_uniforms(uniform);
     glClearColor(0.175f, 0.175f, 0.175f, 1.0f);
     printf("\n");
     while (!glfwWindowShouldClose(window)) {
         state.time = (f32)glfwGetTime();
         frame.start = state.time * MICROSECONDS;
         set_input(window);
-        glUniform1f(uniform.time, state.time);
-        TRANSFORM = mul_mat4_mat4(
-            rotate_mat4(get_radians((f32)state.time * 25.0f), TRANSFORM_AXIS),
-            scale_mat4(TRANSFORM_SCALE));
-        glUniformMatrix4fv(uniform.transform, 1, FALSE, &TRANSFORM.cell[0][0]);
+        set_dynamic_uniforms(uniform, state);
         draw(window);
-        frame.step = (f32)glfwGetTime() * MICROSECONDS;
-        frame.elapsed = (frame.step - frame.start);
-        if (frame.elapsed < FRAME_DURATION) {
-            usleep((u32)(FRAME_DURATION - frame.elapsed));
-        }
-        if (++frame.fps_count == 30) {
-            printf("\033[1A%10.4f fps\n",
-                   frame.fps_count / (frame.step - frame.fps_start) *
-                       MICROSECONDS);
-            frame.fps_start = frame.start;
-            frame.fps_count = 0;
-        }
+        set_frame(&frame);
     }
 }
 
