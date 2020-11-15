@@ -5,20 +5,26 @@
 
 #include <GLFW/glfw3.h>
 
-#include "prelude.h"
+#include "memory.h"
 
 #define WINDOW_WIDTH  640
 #define WINDOW_HEIGHT 480
 
 static u32 VBO;
 static u32 VAO;
+static u32 EBO;
 
 // clang-format off
 static const f32 VERTICES[] = {
-    // positions            // colors
-     0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,   // bottom right
-    -0.5f, -0.5f, 0.0f,     0.0f, 1.0f, 0.0f,   // bottom left
-     0.0f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f    // top
+    // NOTE: (x,y,z)      // NOTE: (r,g,b)
+     0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,
+     0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,
+    -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,
+    -0.5f,  0.5f, 0.0f,   0.5f, 0.0f, 0.5f,
+};
+static const i32 INDICES[] = {
+    0, 1, 3,
+    1, 2, 3,
 };
 // clang-format on
 
@@ -91,6 +97,12 @@ static void set_objects(void) {
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES), VERTICES, GL_STATIC_DRAW);
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                 sizeof(INDICES),
+                 INDICES,
+                 GL_STATIC_DRAW);
     i32 stride = 6 * sizeof(f32);
     {
         // NOTE: Position attribute.

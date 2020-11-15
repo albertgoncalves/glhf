@@ -25,6 +25,7 @@ flags=(
     "-Wlogical-op"
     "-Wmissing-declarations"
     "-Wmissing-include-dirs"
+    "-Wno-unused-function"
     "-Wno-unused-parameter"
     "-Wnull-dereference"
     "-Wpacked"

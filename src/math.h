@@ -25,9 +25,9 @@ static f32 get_radians(f32 degrees) {
     return (degrees * PI) / 180.0f;
 }
 
-// static f32 get_degrees(f32 radians) {
-//     return (radians * 180.0f) / PI;
-// }
+static f32 get_degrees(f32 radians) {
+    return (radians * 180.0f) / PI;
+}
 
 static Simd4F32 linear_combine(Simd4F32 l, Mat4 r) {
     Simd4F32 out;
@@ -73,13 +73,13 @@ static Vec3 norm_vec3(Vec3 x) {
     return mul_vec3_f32(x, sqrtf(dot_vec3(x, x)));
 }
 
-// static Mat4 translate_mat4(Vec3 translation) {
-//     Mat4 out = diag_mat4(1.0f);
-//     out.cell[3][0] = translation.x;
-//     out.cell[3][1] = translation.y;
-//     out.cell[3][2] = translation.z;
-//     return out;
-// }
+static Mat4 translate_mat4(Vec3 translation) {
+    Mat4 out = diag_mat4(1.0f);
+    out.cell[3][0] = translation.x;
+    out.cell[3][1] = translation.y;
+    out.cell[3][2] = translation.z;
+    return out;
+}
 
 static Mat4 scale_mat4(Vec3 scale) {
     Mat4 out = diag_mat4(1.0f);
@@ -111,6 +111,31 @@ static Mat4 rotate_mat4(f32 radians, Vec3 axis) {
     out.cell[2][1] = norm_yz_cos_delta - norm_x_sin_theta;
     out.cell[2][2] = norm_xz_cos_delta + cos_theta;
     return out;
+}
+
+static Mat4 perspective_mat4(f32 fov_radians,
+                             f32 aspect_ratio,
+                             f32 near,
+                             f32 far) {
+    Mat4 out = {0};
+    f32  cotangent = 1.0f / tanf(fov_radians / 2.0);
+    out.cell[0][0] = cotangent / aspect_ratio;
+    out.cell[1][1] = cotangent;
+    out.cell[2][3] = -1.0f;
+    out.cell[2][2] = (near + far) / (near - far);
+    out.cell[3][2] = (2.0f * near * far) / (near - far);
+    out.cell[3][3] = 0.0f;
+    return out;
+}
+
+static void print_mat4(Mat4 x) {
+    for (u8 i = 0; i < 4; ++i) {
+        for (u8 j = 0; j < 4; ++j) {
+            fprintf(stderr, " %5.2f", x.cell[i][j]);
+        }
+        fprintf(stderr, "\n");
+    }
+    fprintf(stderr, "\n");
 }
 
 #endif
