@@ -34,35 +34,45 @@ static const f32 FRAME_DURATION = (1.0f / 60.0f) * MICROSECONDS;
 static Mat4 MODEL;
 // NOTE: "Up" orientation of the object.
 static const Vec3 MODEL_AXIS = {
-    .x = 1.0f,
-    .y = 0.0f,
-    .z = 0.0f,
+    .x = 0.1f,
+    .y = 1.0f,
+    .z = 0.3f,
 };
-static Mat4 VIEW;
-// NOTE: Position of the view plane?
-static const Vec3 VIEW_TRANSLATION = {
+static Mat4       VIEW;
+static const Vec3 VIEW_EYE = {
     .x = 0.0f,
     .y = 0.0f,
     .z = -3.0f,
 };
+static const Vec3 VIEW_TARGET = {
+    .x = 0.0f,
+    .y = 0.0f,
+    .z = 0.0f,
+};
+static const Vec3 VIEW_UP = {
+    .x = 0.0f,
+    .y = 1.0f,
+    .z = 0.0f,
+};
+
 static Mat4 PROJECTION;
 
 static Mat4       TRANSFORM;
 static const Vec3 TRANSFORM_AXIS = {
-    .x = 0.0f,
+    .x = 1.0f,
     .y = 0.0f,
-    .z = 1.0f,
+    .z = 0.0f,
 };
 static const Vec3 TRANSFORM_SCALE = {
-    .x = 1.5f,
-    .y = 1.5f,
-    .z = 1.5f,
+    .x = 1.0f,
+    .y = 1.0f,
+    .z = 1.0f,
 };
 
 static void set_static_uniforms(Uniform uniform) {
-    MODEL = rotate_mat4(get_radians(-55.0f), MODEL_AXIS);
+    MODEL = rotate_mat4(get_radians(55.0f), MODEL_AXIS);
     glUniformMatrix4fv(uniform.model, 1, FALSE, &MODEL.cell[0][0]);
-    VIEW = translate_mat4(VIEW_TRANSLATION);
+    VIEW = look_at_mat4(VIEW_EYE, VIEW_TARGET, VIEW_UP);
     glUniformMatrix4fv(uniform.view, 1, FALSE, &VIEW.cell[0][0]);
     PROJECTION = perspective_mat4(get_radians(45.0f),
                                   (f32)WINDOW_WIDTH / (f32)WINDOW_HEIGHT,
@@ -84,12 +94,6 @@ static void set_input(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, TRUE);
     }
-}
-
-static void draw(GLFWwindow* window) {
-    glClear(GL_COLOR_BUFFER_BIT);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    glfwSwapBuffers(window);
 }
 
 static void set_frame(Frame* frame) {
@@ -171,7 +175,7 @@ i32 main(i32 n, const char** args) {
     loop(window, program);
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
+    // glDeleteBuffers(1, &EBO);
     glDeleteProgram(program);
     glfwTerminate();
     free(memory);

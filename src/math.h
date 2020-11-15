@@ -21,6 +21,16 @@ typedef union {
     Simd4F32 column[4];
 } Mat4;
 
+static void print_mat4(Mat4 x) {
+    for (u8 i = 0; i < 4; ++i) {
+        for (u8 j = 0; j < 4; ++j) {
+            fprintf(stderr, " %5.2f", x.cell[i][j]);
+        }
+        fprintf(stderr, "\n");
+    }
+    fprintf(stderr, "\n");
+}
+
 static f32 get_radians(f32 degrees) {
     return (degrees * PI) / 180.0f;
 }
@@ -69,8 +79,18 @@ static Vec3 mul_vec3_f32(Vec3 l, f32 r) {
     return out;
 }
 
-static Vec3 norm_vec3(Vec3 x) {
-    return mul_vec3_f32(x, sqrtf(dot_vec3(x, x)));
+static f32 len_vec3(Vec3 v) {
+    return sqrtf((v.x * v.x) + (v.y * v.y) + (v.z * v.z));
+}
+
+static Vec3 norm_vec3(Vec3 v) {
+    f32  len = len_vec3(v);
+    Vec3 out = {
+        .x = v.x / len,
+        .y = v.y / len,
+        .z = v.z / len,
+    };
+    return out;
 }
 
 static Mat4 translate_mat4(Vec3 translation) {
@@ -128,14 +148,46 @@ static Mat4 perspective_mat4(f32 fov_radians,
     return out;
 }
 
-static void print_mat4(Mat4 x) {
-    for (u8 i = 0; i < 4; ++i) {
-        for (u8 j = 0; j < 4; ++j) {
-            fprintf(stderr, " %5.2f", x.cell[i][j]);
-        }
-        fprintf(stderr, "\n");
-    }
-    fprintf(stderr, "\n");
+static Vec3 sub_vec3(Vec3 l, Vec3 r) {
+    Vec3 out = {
+        .x = l.x - r.x,
+        .y = l.y - r.y,
+        .z = l.z - r.z,
+    };
+    return out;
+}
+
+static Vec3 cross_vec3(Vec3 l, Vec3 r) {
+    Vec3 out = {
+        .x = (l.y * r.z) - (l.z * r.y),
+        .y = (l.z * r.x) - (l.x * r.z),
+        .z = (l.x * r.y) - (l.y * r.x),
+    };
+    return out;
+}
+
+static Mat4 look_at_mat4(Vec3 eye, Vec3 target, Vec3 up) {
+    Mat4 out;
+    Vec3 f = norm_vec3(sub_vec3(target, eye));
+    Vec3 s = norm_vec3(cross_vec3(f, up));
+    Vec3 u = cross_vec3(s, f);
+    out.cell[0][0] = s.x;
+    out.cell[0][1] = u.x;
+    out.cell[0][2] = -f.x;
+    out.cell[0][3] = 0.0f;
+    out.cell[1][0] = s.y;
+    out.cell[1][1] = u.y;
+    out.cell[1][2] = -f.y;
+    out.cell[1][3] = 0.0f;
+    out.cell[2][0] = s.z;
+    out.cell[2][1] = u.z;
+    out.cell[2][2] = -f.z;
+    out.cell[2][3] = 0.0f;
+    out.cell[3][0] = -dot_vec3(s, eye);
+    out.cell[3][1] = -dot_vec3(u, eye);
+    out.cell[3][2] = dot_vec3(f, eye);
+    out.cell[3][3] = 1.0f;
+    return out;
 }
 
 #endif

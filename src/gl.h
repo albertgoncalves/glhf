@@ -12,20 +12,57 @@
 
 static u32 VBO;
 static u32 VAO;
-static u32 EBO;
+// static u32 EBO;
 
 // clang-format off
 static const f32 VERTICES[] = {
-    // NOTE: (x,y,z)      // NOTE: (r,g,b)
-     0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,
-     0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,
-    -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,
-    -0.5f,  0.5f, 0.0f,   0.5f, 0.0f, 0.5f,
+    // NOTE: (x,y,z)        // NOTE: (r,g,b)
+    -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,    1.0f, 0.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,    1.0f, 1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,    1.0f, 1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,    0.0f, 1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,    1.0f, 0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,    1.0f, 1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,    1.0f, 1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,    0.0f, 1.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,    1.0f, 0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,    1.0f, 1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,    0.0f, 1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,    0.0f, 1.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,    1.0f, 0.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,    1.0f, 0.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,    1.0f, 1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,    0.0f, 1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,    0.0f, 1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,    1.0f, 0.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,    0.0f, 1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,    1.0f, 1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,    1.0f, 0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,    1.0f, 0.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,    0.0f, 1.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,    0.0f, 1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,    1.0f, 1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,    1.0f, 0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,    1.0f, 0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,    0.0f, 1.0f, 1.0f,
 };
-static const i32 INDICES[] = {
-    0, 1, 3,
-    1, 2, 3,
-};
+// static const i32 INDICES[] = {
+//     0, 1, 3,
+//     1, 2, 3,
+// };
 // clang-format on
 
 static void framebuffer_size_callback(GLFWwindow* _, i32 width, i32 height) {
@@ -97,12 +134,12 @@ static void set_objects(void) {
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES), VERTICES, GL_STATIC_DRAW);
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 sizeof(INDICES),
-                 INDICES,
-                 GL_STATIC_DRAW);
+    // glGenBuffers(1, &EBO);
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    // glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+    //              sizeof(INDICES),
+    //              INDICES,
+    //              GL_STATIC_DRAW);
     i32 stride = 6 * sizeof(f32);
     {
         // NOTE: Position attribute.
@@ -118,6 +155,14 @@ static void set_objects(void) {
         glVertexAttribPointer(index, 3, GL_FLOAT, FALSE, stride, offset);
         glEnableVertexAttribArray(index);
     }
+    glEnable(GL_DEPTH_TEST);
+}
+
+static void draw(GLFWwindow* window) {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glfwSwapBuffers(window);
 }
 
 #endif

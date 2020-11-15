@@ -11,7 +11,7 @@ uniform mat4 U_VIEW;
 uniform mat4 U_PROJECTION;
 
 void main() {
+    VERT_OUT_COLOR = IN_COLOR;
     gl_Position =
         U_PROJECTION * U_VIEW * U_MODEL * U_TRANSFORM * vec4(IN_POS, 1.0);
-    VERT_OUT_COLOR = IN_COLOR;
 }
