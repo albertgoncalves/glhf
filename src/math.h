@@ -127,9 +127,9 @@ static Mat4 rotate_mat4(f32 radians, Vec3 axis) {
     out.cell[1][0] = norm_xy_cos_delta - norm_z_sin_theta;
     out.cell[1][1] = (norm.y * norm.y * cos_delta) + cos_theta;
     out.cell[1][2] = norm_yz_cos_delta + norm_x_sin_theta;
-    out.cell[2][0] = (norm.x * norm.z * cos_delta) + norm_y_sin_theta;
+    out.cell[2][0] = norm_xz_cos_delta + norm_y_sin_theta;
     out.cell[2][1] = norm_yz_cos_delta - norm_x_sin_theta;
-    out.cell[2][2] = norm_xz_cos_delta + cos_theta;
+    out.cell[2][2] = (norm.z * norm.z * cos_delta) + cos_theta;
     return out;
 }
 

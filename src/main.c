@@ -43,7 +43,7 @@ static const Vec3 MODEL_AXIS = {
 static Mat4       VIEW;
 static const Vec3 VIEW_EYE = {
     .x = 0.0f,
-    .y = 0.0f,
+    .y = 3.0f,
     .z = -3.25f, // NOTE: Forward-and-back distance to object.
 };
 static const Vec3 VIEW_TARGET = {
@@ -61,9 +61,9 @@ static Mat4 PROJECTION;
 
 static Mat4       TRANSFORM;
 static const Vec3 TRANSFORM_AXIS = {
-    .x = 1.0f,
+    .x = 0.0f,
     .y = 0.0f,
-    .z = 0.0f,
+    .z = 1.0f,
 };
 static const Vec3 TRANSFORM_SCALE = {
     .x = 1.0f,
