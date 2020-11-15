@@ -1,7 +1,10 @@
 #version 330 core
 
-out vec4 FragColor;
+in vec3 VERT_OUT_COLOR;
+
+uniform float U_TIME;
 
 void main() {
-    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+    float t = sin(U_TIME);
+    gl_FragColor = vec4(VERT_OUT_COLOR * (t * t), 1.0);
 }

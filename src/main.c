@@ -10,17 +10,21 @@
 
 #include "prelude.h"
 
-
 typedef struct {
-    f64 start;
-    u8  count;
-} Fps;
-
-typedef struct {
-    f64 start;
-    f64 step;
-    f64 elapsed;
+    f32 start;
+    f32 step;
+    f32 elapsed;
+    f32 fps_start;
+    u8  fps_count;
 } Frame;
+
+typedef struct {
+    i32 time;
+} Uniform;
+
+typedef struct {
+    f32 time;
+} State;
 
 #define SIZE_BUFFER 512
 
@@ -33,15 +37,16 @@ typedef struct {
 
 #define MICROSECONDS 1000000.0f
 
-static const f64 FRAME_DURATION = (1.0f / 60.0f) * MICROSECONDS;
+static const f32 FRAME_DURATION = (1.0f / 60.0f) * MICROSECONDS;
 static u32       VBO;
 static u32       VAO;
 
 // clang-format off
 static const f32 VERTICES[] = {
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f,  0.5f, 0.0f,
+    // positions            // colors
+     0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,   // bottom right
+    -0.5f, -0.5f, 0.0f,     0.0f, 1.0f, 0.0f,   // bottom left
+     0.0f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f    // top
 };
 // clang-format on
 
@@ -138,8 +143,21 @@ static void set_objects(void) {
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES), VERTICES, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, FALSE, 3 * sizeof(f32), (void*)0);
-    glEnableVertexAttribArray(0);
+    i32 stride = 6 * sizeof(f32);
+    {
+        // NOTE: Position attribute.
+        u32   index = 0;
+        void* offset = (void*)0;
+        glVertexAttribPointer(index, 3, GL_FLOAT, FALSE, stride, offset);
+        glEnableVertexAttribArray(index);
+    }
+    {
+        // NOTE: Color attribute.
+        u32   index = 1;
+        void* offset = (void*)(3 * sizeof(f32));
+        glVertexAttribPointer(index, 3, GL_FLOAT, FALSE, stride, offset);
+        glEnableVertexAttribArray(index);
+    }
 }
 
 static void update(GLFWwindow* window) {
@@ -149,31 +167,34 @@ static void update(GLFWwindow* window) {
     }
 }
 
-static void draw(GLFWwindow* window) {
+static void draw(GLFWwindow* window, State state, Uniform uniform) {
+    glUniform1f(uniform.time, state.time);
     glClear(GL_COLOR_BUFFER_BIT);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glfwSwapBuffers(window);
 }
 
-static void loop(GLFWwindow* window) {
-    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+static void loop(GLFWwindow* window, Uniform uniform) {
+    State state = {0};
     Frame frame = {0};
-    Fps   fps = {0};
+    glClearColor(0.175f, 0.175f, 0.175f, 1.0f);
     printf("\n");
     while (!glfwWindowShouldClose(window)) {
-        frame.start = glfwGetTime() * MICROSECONDS;
+        state.time = (f32)glfwGetTime();
+        frame.start = state.time * MICROSECONDS;
         update(window);
-        draw(window);
-        frame.step = glfwGetTime() * MICROSECONDS;
+        draw(window, state, uniform);
+        frame.step = (f32)glfwGetTime() * MICROSECONDS;
         frame.elapsed = (frame.step - frame.start);
         if (frame.elapsed < FRAME_DURATION) {
             usleep((u32)(FRAME_DURATION - frame.elapsed));
         }
-        if (++fps.count == 30) {
+        if (++frame.fps_count == 30) {
             printf("\033[1A%10.4f fps\n",
-                   fps.count / (frame.step - fps.start) * MICROSECONDS);
-            fps.start = frame.start;
-            fps.count = 0;
+                   frame.fps_count / (frame.step - frame.fps_start) *
+                       MICROSECONDS);
+            frame.fps_start = frame.start;
+            frame.fps_count = 0;
         }
     }
 }
@@ -184,6 +205,14 @@ static void error_callback(i32 code, const char* error) {
 }
 
 i32 main(i32 n, const char** args) {
+    printf("sizeof(Frame)   : %zu\n"
+           "sizeof(Uniform) : %zu\n"
+           "sizeof(State)   : %zu\n"
+           "sizeof(Memory)  : %zu\n\n",
+           sizeof(Frame),
+           sizeof(Uniform),
+           sizeof(State),
+           sizeof(Memory));
     if (n < 3) {
         ERROR("Missing args");
     }
@@ -200,7 +229,10 @@ i32 main(i32 n, const char** args) {
                               get_shader(memory, args[1], GL_VERTEX_SHADER),
                               get_shader(memory, args[2], GL_FRAGMENT_SHADER));
     set_objects();
-    loop(window);
+    Uniform uniform = {
+        .time = glGetUniformLocation(program, "U_TIME"),
+    };
+    loop(window, uniform);
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteProgram(program);
