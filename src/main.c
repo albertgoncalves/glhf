@@ -8,20 +8,8 @@
 
 #include <GLFW/glfw3.h>
 
-typedef FILE File;
+#include "prelude.h"
 
-typedef uint8_t  u8;
-typedef uint32_t u32;
-
-typedef int32_t i32;
-
-typedef float  f32;
-typedef double f64;
-
-typedef enum {
-    FALSE = 0,
-    TRUE = 1,
-} Bool;
 
 typedef struct {
     f64 start;
