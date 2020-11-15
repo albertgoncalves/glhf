@@ -58,13 +58,14 @@ now () {
 }
 
 start=$(now)
+# NOTE: Order matters for  `-l...`, apparently.
 gcc \
+    -lm \
     -I"${PATH_GLFW}/include" \
     -L"${PATH_GLFW}/lib" \
+    -lglfw \
     -L"${PATH_LIBGL}/lib" \
     -lGL \
-    -lglfw \
-    -lm \
     "${flags[@]}" \
     -o "$WD/bin/main" \
     "$WD/src/main.c"
