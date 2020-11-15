@@ -4,8 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "gl.h"
-#include "math.h"
+#include "scene.h"
 
 typedef struct {
     f32 start;
@@ -15,81 +14,9 @@ typedef struct {
     u8  fps_count;
 } Frame;
 
-typedef struct {
-    f32 time;
-} State;
-
-typedef struct {
-    i32 time;
-    i32 model;
-    i32 view;
-    i32 projection;
-    i32 transform;
-} Uniform;
-
 #define MICROSECONDS 1000000.0f
 
 static const f32 FRAME_DURATION = (1.0f / 60.0f) * MICROSECONDS;
-
-static Mat4 MODEL;
-// NOTE: "Up" orientation of the object.
-static f32        MODEL_DEGREES = 45.0f;
-static const Vec3 MODEL_AXIS = {
-    .x = 0.0f,
-    .y = 1.0f,
-    .z = 0.0f,
-};
-
-static Mat4       VIEW;
-static const Vec3 VIEW_EYE = {
-    .x = 0.0f,
-    .y = 3.0f,
-    .z = -3.25f, // NOTE: Forward-and-back distance to object.
-};
-static const Vec3 VIEW_TARGET = {
-    .x = 0.0f,
-    .y = 0.0f,
-    .z = 0.0f,
-};
-static const Vec3 VIEW_UP = {
-    .x = 0.0f, // NOTE: `x`-axis is left/right.
-    .y = 1.0f, // NOTE: `y`-axis is up/down.
-    .z = 0.0f, // NOTE: `z`-axis is forward/back.
-};
-
-static Mat4 PROJECTION;
-
-static Mat4       TRANSFORM;
-static const Vec3 TRANSFORM_AXIS = {
-    .x = 0.0f,
-    .y = 0.0f,
-    .z = 1.0f,
-};
-static const Vec3 TRANSFORM_SCALE = {
-    .x = 1.0f,
-    .y = 1.0f,
-    .z = 1.0f,
-};
-
-static void set_static_uniforms(Uniform uniform) {
-    MODEL = rotate_mat4(get_radians(MODEL_DEGREES), MODEL_AXIS);
-    glUniformMatrix4fv(uniform.model, 1, FALSE, &MODEL.cell[0][0]);
-    VIEW = look_at_mat4(VIEW_EYE, VIEW_TARGET, VIEW_UP);
-    glUniformMatrix4fv(uniform.view, 1, FALSE, &VIEW.cell[0][0]);
-    PROJECTION = perspective_mat4(get_radians(45.0f),
-                                  (f32)WINDOW_WIDTH / (f32)WINDOW_HEIGHT,
-                                  0.1f,
-                                  100.0f);
-    glUniformMatrix4fv(uniform.projection, 1, FALSE, &PROJECTION.cell[0][0]);
-}
-
-static void set_dynamic_uniforms(Uniform uniform, State state) {
-    glUniform1f(uniform.time, state.time);
-    TRANSFORM = mul_mat4(
-        rotate_mat4(get_radians((f32)state.time * 25.0f), TRANSFORM_AXIS),
-        scale_mat4(TRANSFORM_SCALE));
-    glUniformMatrix4fv(uniform.transform, 1, FALSE, &TRANSFORM.cell[0][0]);
-}
 
 static void set_input(GLFWwindow* window) {
     glfwPollEvents();
@@ -114,24 +41,18 @@ static void set_frame(Frame* frame) {
 }
 
 static void loop(GLFWwindow* window, u32 program) {
-    State   state = {0};
-    Frame   frame = {0};
-    Uniform uniform = {
-        .time = glGetUniformLocation(program, "U_TIME"),
-        .model = glGetUniformLocation(program, "U_MODEL"),
-        .view = glGetUniformLocation(program, "U_VIEW"),
-        .projection = glGetUniformLocation(program, "U_PROJECTION"),
-        .transform = glGetUniformLocation(program, "U_TRANSFORM"),
-    };
-    set_static_uniforms(uniform);
+    State    state = {0};
+    Frame    frame = {0};
+    Uniforms uniforms = get_uniforms(program);
+    set_static_uniforms(uniforms);
     glClearColor(0.175f, 0.175f, 0.175f, 1.0f);
     printf("\n");
     while (!glfwWindowShouldClose(window)) {
-        state.time = (f32)glfwGetTime();
-        frame.start = state.time * MICROSECONDS;
+        set_state(&state);
         set_input(window);
-        set_dynamic_uniforms(uniform, state);
+        set_dynamic_uniforms(uniforms, state);
         draw(window);
+        frame.start = state.time * MICROSECONDS;
         set_frame(&frame);
     }
 }
@@ -150,7 +71,7 @@ i32 main(i32 n, const char** args) {
            "sizeof(Vec3)           : %zu\n"
            "sizeof(Mat4)           : %zu\n"
            "sizeof(Frame)          : %zu\n"
-           "sizeof(Uniform)        : %zu\n"
+           "sizeof(Uniforms)       : %zu\n"
            "sizeof(State)          : %zu\n"
            "sizeof(Memory)         : %zu\n"
            "sizeof(memory->buffer) : %zu\n\n",
@@ -158,7 +79,7 @@ i32 main(i32 n, const char** args) {
            sizeof(Vec3),
            sizeof(Mat4),
            sizeof(Frame),
-           sizeof(Uniform),
+           sizeof(Uniforms),
            sizeof(State),
            sizeof(Memory),
            sizeof(memory->buffer));
@@ -177,7 +98,7 @@ i32 main(i32 n, const char** args) {
     loop(window, program);
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    // glDeleteBuffers(1, &EBO);
+    glDeleteBuffers(1, &IVBO);
     glDeleteProgram(program);
     glfwTerminate();
     free(memory);
