@@ -25,7 +25,6 @@ flags=(
     "-Wlogical-op"
     "-Wmissing-declarations"
     "-Wmissing-include-dirs"
-    "-Wno-unused-function"
     "-Wno-unused-parameter"
     "-Wnull-dereference"
     "-Wpacked"
@@ -42,35 +41,36 @@ flags=(
     "-Wwrite-strings"
 )
 
-for x in "$WD"/src/*.h; do
-    cppcheck "$x" | sed 's/\/.*\/\(.*\) \.\.\./\1/g'
-done
-cppcheck \
-    --enable=all \
-    --suppress=missingIncludeSystem \
-    "$WD/src" \
-    | sed 's/\/.*\/\(.*\) \.\.\./\1/g'
-clang-format -i -verbose "$WD/src"/*.glsl 2>&1 | sed 's/\/.*\///g'
-clang-format -i -verbose "$WD/src"/*.c 2>&1 | sed 's/\/.*\///g'
-clang-format -i -verbose "$WD/src"/*.h 2>&1 | sed 's/\/.*\///g'
-
 now () {
     date +%s.%N
 }
 
-start=$(now)
-# NOTE: Order matters for  `-l...`, apparently.
-gcc \
-    -lm \
-    -I"${PATH_GLFW}/include" \
-    -L"${PATH_GLFW}/lib" \
-    -lglfw \
-    -L"${PATH_LIBGL}/lib" \
-    -lGL \
-    "${flags[@]}" \
-    -o "$WD/bin/main" \
-    "$WD/src/main.c"
-end=$(now)
-python3 -c "print(\"Compiled! ({:.3f}s)\n\".format(${end} - ${start}))"
+(
+    start=$(now)
+    for x in "$WD"/src/*.h; do
+        cppcheck "$x" | sed 's/\/.*\/\(.*\) \.\.\./\1/g'
+    done
+    cppcheck \
+        --enable=all \
+        --suppress=missingIncludeSystem \
+        "$WD/src" \
+        | sed 's/\/.*\/\(.*\) \.\.\./\1/g'
+    clang-format -i -verbose "$WD/src"/*.glsl 2>&1 | sed 's/\/.*\///g'
+    clang-format -i -verbose "$WD/src"/*.c 2>&1 | sed 's/\/.*\///g'
+    clang-format -i -verbose "$WD/src"/*.h 2>&1 | sed 's/\/.*\///g'
+    # NOTE: Order matters for  `-l...`, apparently.
+    gcc \
+        -lm \
+        -I"${PATH_GLFW}/include" \
+        -L"${PATH_GLFW}/lib" \
+        -lglfw \
+        -L"${PATH_LIBGL}/lib" \
+        -lGL \
+        "${flags[@]}" \
+        -o "$WD/bin/main" \
+        "$WD/src/main.c"
+    end=$(now)
+    python3 -c "print(\"Compiled! ({:.3f}s)\n\".format(${end} - ${start}))"
+)
 
 "$WD/bin/main" "$WD/src/vert.glsl" "$WD/src/frag.glsl" || echo $?

@@ -21,23 +21,23 @@ typedef union {
     Simd4F32 column[4];
 } Mat4;
 
-static void print_mat4(Mat4 x) {
-    for (u8 i = 0; i < 4; ++i) {
-        for (u8 j = 0; j < 4; ++j) {
-            fprintf(stderr, " %5.2f", x.cell[i][j]);
-        }
-        fprintf(stderr, "\n");
-    }
-    fprintf(stderr, "\n");
-}
+// static void print_mat4(Mat4 x) {
+//     for (u8 i = 0; i < 4; ++i) {
+//         for (u8 j = 0; j < 4; ++j) {
+//             fprintf(stderr, " %5.2f", x.cell[i][j]);
+//         }
+//         fprintf(stderr, "\n");
+//     }
+//     fprintf(stderr, "\n");
+// }
 
 static f32 get_radians(f32 degrees) {
     return (degrees * PI) / 180.0f;
 }
 
-static f32 get_degrees(f32 radians) {
-    return (radians * 180.0f) / PI;
-}
+// static f32 get_degrees(f32 radians) {
+//     return (radians * 180.0f) / PI;
+// }
 
 static Simd4F32 linear_combine(Simd4F32 l, Mat4 r) {
     Simd4F32 out;
@@ -66,21 +66,21 @@ static Mat4 diag_mat4(f32 x) {
     return out;
 }
 
-static f32 dot_vec3(Vec3 a, Vec3 b) {
-    return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
+static f32 dot_vec3(Vec3 l, Vec3 r) {
+    return (l.x * r.x) + (l.y * r.y) + (l.z * r.z);
 }
 
-static Vec3 mul_vec3_f32(Vec3 l, f32 r) {
-    Vec3 out = {
-        .x = l.x * r,
-        .y = l.y * r,
-        .z = l.z * r,
-    };
-    return out;
-}
+// static Vec3 mul_vec3_f32(Vec3 l, f32 r) {
+//     Vec3 out = {
+//         .x = l.x * r,
+//         .y = l.y * r,
+//         .z = l.z * r,
+//     };
+//     return out;
+// }
 
 static f32 len_vec3(Vec3 v) {
-    return sqrtf((v.x * v.x) + (v.y * v.y) + (v.z * v.z));
+    return sqrtf(dot_vec3(v, v));
 }
 
 static Vec3 norm_vec3(Vec3 v) {
@@ -93,13 +93,13 @@ static Vec3 norm_vec3(Vec3 v) {
     return out;
 }
 
-static Mat4 translate_mat4(Vec3 translation) {
-    Mat4 out = diag_mat4(1.0f);
-    out.cell[3][0] = translation.x;
-    out.cell[3][1] = translation.y;
-    out.cell[3][2] = translation.z;
-    return out;
-}
+// static Mat4 translate_mat4(Vec3 translation) {
+//     Mat4 out = diag_mat4(1.0f);
+//     out.cell[3][0] = translation.x;
+//     out.cell[3][1] = translation.y;
+//     out.cell[3][2] = translation.z;
+//     return out;
+// }
 
 static Mat4 scale_mat4(Vec3 scale) {
     Mat4 out = diag_mat4(1.0f);
