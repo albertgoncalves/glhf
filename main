@@ -62,8 +62,9 @@ gcc \
     -I"${PATH_GLFW}/include" \
     -L"${PATH_GLFW}/lib" \
     -L"${PATH_LIBGL}/lib" \
-    -lglfw \
     -lGL \
+    -lglfw \
+    -lm \
     "${flags[@]}" \
     -o "$WD/bin/main" \
     "$WD/src/main.c"

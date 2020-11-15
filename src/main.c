@@ -9,6 +9,7 @@
 #include <GLFW/glfw3.h>
 
 #include "prelude.h"
+// #include "math.h"
 
 typedef struct {
     f32 start;
