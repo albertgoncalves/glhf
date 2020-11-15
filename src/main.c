@@ -33,16 +33,18 @@ static const f32 FRAME_DURATION = (1.0f / 60.0f) * MICROSECONDS;
 
 static Mat4 MODEL;
 // NOTE: "Up" orientation of the object.
+static f32        MODEL_DEGREES = 45.0f;
 static const Vec3 MODEL_AXIS = {
-    .x = 0.1f,
+    .x = 0.0f,
     .y = 1.0f,
-    .z = 0.3f,
+    .z = 0.0f,
 };
+
 static Mat4       VIEW;
 static const Vec3 VIEW_EYE = {
     .x = 0.0f,
     .y = 0.0f,
-    .z = -3.0f,
+    .z = -3.25f, // NOTE: Forward-and-back distance to object.
 };
 static const Vec3 VIEW_TARGET = {
     .x = 0.0f,
@@ -50,9 +52,9 @@ static const Vec3 VIEW_TARGET = {
     .z = 0.0f,
 };
 static const Vec3 VIEW_UP = {
-    .x = 0.0f,
-    .y = 1.0f,
-    .z = 0.0f,
+    .x = 0.0f, // NOTE: `x`-axis is left/right.
+    .y = 1.0f, // NOTE: `y`-axis is up/down.
+    .z = 0.0f, // NOTE: `z`-axis is forward/back.
 };
 
 static Mat4 PROJECTION;
@@ -70,7 +72,7 @@ static const Vec3 TRANSFORM_SCALE = {
 };
 
 static void set_static_uniforms(Uniform uniform) {
-    MODEL = rotate_mat4(get_radians(55.0f), MODEL_AXIS);
+    MODEL = rotate_mat4(get_radians(MODEL_DEGREES), MODEL_AXIS);
     glUniformMatrix4fv(uniform.model, 1, FALSE, &MODEL.cell[0][0]);
     VIEW = look_at_mat4(VIEW_EYE, VIEW_TARGET, VIEW_UP);
     glUniformMatrix4fv(uniform.view, 1, FALSE, &VIEW.cell[0][0]);

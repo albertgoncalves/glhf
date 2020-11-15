@@ -3,7 +3,7 @@
 
 #include "prelude.h"
 
-#define SIZE_BUFFER 512
+#define SIZE_BUFFER 1024
 
 typedef struct {
     char buffer[SIZE_BUFFER];
