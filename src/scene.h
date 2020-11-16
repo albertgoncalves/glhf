@@ -114,17 +114,36 @@ static u32 VAO;
 static u32 VBO;
 static u32 IVBO;
 
+static void set_translations(void) {
+    u8 k = 0;
+    for (u8 i = 0; i < 4; ++i) {
+        for (u8 j = 0; j < 4; ++j) {
+            Vec3 position = {
+                .x = COORDS[i],
+                .y = 0.0f,
+                .z = COORDS[j],
+            };
+            f32  size = 1.0f / sqrtf((f32)k + 1.0f);
+            Vec3 scale = {
+                .x = size,
+                .y = size,
+                .z = size,
+            };
+            TRANSLATIONS[k++] =
+                mul_mat4(translate_mat4(position), scale_mat4(scale));
+        }
+    }
+}
+
 static void set_vertex_attrib(u32 index, i32 size, i32 stride, void* offset) {
     glEnableVertexAttribArray(index);
     glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, offset);
 }
 
 static void set_objects(void) {
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
     u32 index = 0;
-    {
-        glGenVertexArrays(1, &VAO);
-        glBindVertexArray(VAO);
-    }
     {
         glGenBuffers(1, &VBO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -142,26 +161,7 @@ static void set_objects(void) {
                           (void*)(sizeof(f32) * (usize)position_width));
     }
     {
-        {
-            u8 k = 0;
-            for (u8 i = 0; i < 4; ++i) {
-                for (u8 j = 0; j < 4; ++j) {
-                    Vec3 position = {
-                        .x = COORDS[i],
-                        .y = 0.0f,
-                        .z = COORDS[j],
-                    };
-                    f32  size = 1.0f / sqrtf((f32)k + 1.0f);
-                    Vec3 scale = {
-                        .x = size,
-                        .y = size,
-                        .z = size,
-                    };
-                    TRANSLATIONS[k++] =
-                        mul_mat4(translate_mat4(position), scale_mat4(scale));
-                }
-            }
-        }
+        set_translations();
         glGenBuffers(1, &IVBO);
         glBindBuffer(GL_ARRAY_BUFFER, IVBO);
         glBufferData(GL_ARRAY_BUFFER,
@@ -215,6 +215,10 @@ static void set_state(State* state) {
     state->time = (f32)glfwGetTime();
 }
 
+static void set_draw(void) {
+    glClearColor(0.175f, 0.175f, 0.175f, 1.0f);
+}
+
 static void draw(GLFWwindow* window) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDrawArraysInstanced(GL_TRIANGLES,
@@ -222,6 +226,12 @@ static void draw(GLFWwindow* window) {
                           36,
                           sizeof(TRANSLATIONS) / sizeof(TRANSLATIONS[0]));
     glfwSwapBuffers(window);
+}
+
+static void free_scene(void) {
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &IVBO);
 }
 
 #endif

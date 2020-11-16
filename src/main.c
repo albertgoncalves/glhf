@@ -45,7 +45,7 @@ static void loop(GLFWwindow* window, u32 program) {
     Frame    frame = {0};
     Uniforms uniforms = get_uniforms(program);
     set_static_uniforms(uniforms);
-    glClearColor(0.175f, 0.175f, 0.175f, 1.0f);
+    set_draw();
     printf("\n");
     while (!glfwWindowShouldClose(window)) {
         set_state(&state);
@@ -96,9 +96,7 @@ i32 main(i32 n, const char** args) {
                               get_shader(memory, args[2], GL_FRAGMENT_SHADER));
     set_objects();
     loop(window, program);
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &IVBO);
+    free_scene();
     glDeleteProgram(program);
     glfwTerminate();
     free(memory);
