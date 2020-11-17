@@ -25,6 +25,7 @@ static GLFWwindow* get_window(const char* name) {
         ERROR("!window");
     }
     glfwMakeContextCurrent(window);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetWindowAspectRatio(window, WINDOW_WIDTH, WINDOW_HEIGHT);
     glfwSwapInterval(1);
