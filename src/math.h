@@ -66,33 +66,6 @@ static Mat4 diag_mat4(f32 x) {
     return out;
 }
 
-static f32 dot_vec3(Vec3 l, Vec3 r) {
-    return (l.x * r.x) + (l.y * r.y) + (l.z * r.z);
-}
-
-static Vec3 mul_vec3_f32(Vec3 l, f32 r) {
-    Vec3 out = {
-        .x = l.x * r,
-        .y = l.y * r,
-        .z = l.z * r,
-    };
-    return out;
-}
-
-static f32 len_vec3(Vec3 v) {
-    return sqrtf(dot_vec3(v, v));
-}
-
-static Vec3 norm_vec3(Vec3 v) {
-    f32  len = len_vec3(v);
-    Vec3 out = {
-        .x = v.x / len,
-        .y = v.y / len,
-        .z = v.z / len,
-    };
-    return out;
-}
-
 static Mat4 translate_mat4(Vec3 translation) {
     Mat4 out = diag_mat4(1.0f);
     out.cell[3][0] = translation.x;
@@ -106,6 +79,24 @@ static Mat4 scale_mat4(Vec3 scale) {
     out.cell[0][0] = scale.x;
     out.cell[1][1] = scale.y;
     out.cell[2][2] = scale.z;
+    return out;
+}
+
+static f32 dot_vec3(Vec3 l, Vec3 r) {
+    return (l.x * r.x) + (l.y * r.y) + (l.z * r.z);
+}
+
+static f32 len_vec3(Vec3 v) {
+    return sqrtf(dot_vec3(v, v));
+}
+
+static Vec3 norm_vec3(Vec3 v) {
+    f32  len = len_vec3(v);
+    Vec3 out = {
+        .x = v.x / len,
+        .y = v.y / len,
+        .z = v.z / len,
+    };
     return out;
 }
 
@@ -143,7 +134,7 @@ static Mat4 perspective_mat4(f32 fov_radians,
     out.cell[1][1] = cotangent;
     out.cell[2][3] = -1.0f;
     out.cell[2][2] = (near + far) / (near - far);
-    out.cell[3][2] = (2.0f * near * far) / (near - far);
+    out.cell[3][2] = (near * far * 2.0f) / (near - far);
     out.cell[3][3] = 0.0f;
     return out;
 }

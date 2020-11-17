@@ -86,14 +86,14 @@ static const Vec3 MODEL_SCALE = {
 
 static Mat4       VIEW;
 static const Vec3 VIEW_EYE = {
-    .x = 7.5f,
-    .y = 7.5f,
-    .z = -12.5f, // NOTE: Forward-and-back distance to object.
+    .x = 0.0f,
+    .y = 8.0f,
+    .z = 9.0f, // NOTE: Forward-and-back distance to object.
 };
 static const Vec3 VIEW_TARGET = {
-    .x = 0.0f,
-    .y = 0.0f,
-    .z = 0.0f,
+    .x = -0.225f,
+    .y = -0.75f,
+    .z = 1.0f,
 };
 static const Vec3 VIEW_UP = {
     .x = 0.0f, // NOTE: `x`-axis is left/right.
