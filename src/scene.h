@@ -219,13 +219,12 @@ static void set_draw(void) {
     glClearColor(0.175f, 0.175f, 0.175f, 1.0f);
 }
 
-static void draw(GLFWwindow* window) {
+static void draw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDrawArraysInstanced(GL_TRIANGLES,
                           0,
                           36,
                           sizeof(TRANSLATIONS) / sizeof(TRANSLATIONS[0]));
-    glfwSwapBuffers(window);
 }
 
 static void free_scene(void) {

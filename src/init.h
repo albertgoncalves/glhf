@@ -25,9 +25,13 @@ static GLFWwindow* get_window(const char* name) {
         ERROR("!window");
     }
     glfwMakeContextCurrent(window);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetWindowAspectRatio(window, WINDOW_WIDTH, WINDOW_HEIGHT);
+    // NOTE: While mouse *does* get locked to center of window, it remains
+    // visible. See `https://github.com/glfw/glfw/issues/1790`.
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    // NOTE: This seems to have no effect. See
+    // `https://github.com/glfw/glfw/issues/1559`.
     glfwSwapInterval(1);
     return window;
 }

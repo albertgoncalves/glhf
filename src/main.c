@@ -52,6 +52,7 @@ static void loop(GLFWwindow* window, u32 program) {
         set_input(window);
         set_dynamic_uniforms(uniforms, state);
         draw(window);
+        glfwSwapBuffers(window);
         frame.start = state.time * MICROSECONDS;
         set_frame(&frame);
     }
@@ -63,6 +64,7 @@ static void error_callback(i32 code, const char* error) {
 }
 
 i32 main(i32 n, const char** args) {
+    printf("GLFW version: %s\n\n", glfwGetVersionString());
     Memory* memory = calloc(1, sizeof(Memory));
     if (!memory) {
         ERROR("`calloc` failed");
