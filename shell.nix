@@ -13,8 +13,6 @@ mkShell {
         xorg.libXrandr
     ];
     shellHook = ''
-        export PATH_GLFW="${glfw3}"
-        export PATH_LIBGL="${libGL}"
         . .shellhook
     '';
 }

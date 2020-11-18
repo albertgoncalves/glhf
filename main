@@ -41,6 +41,14 @@ flags=(
     "-Wunused-macros"
     "-Wwrite-strings"
 )
+# NOTE: Order matters for  `-l...`, apparently.
+libs=(
+    "-lm"
+    "-lglfw"
+    "-lGL"
+    "-lX11"
+    "-lXfixes"
+)
 
 now () {
     date +%s.%N
@@ -59,19 +67,7 @@ now () {
     clang-format -i -verbose "$WD/src"/*.glsl 2>&1 | sed 's/\/.*\///g'
     clang-format -i -verbose "$WD/src"/*.c 2>&1 | sed 's/\/.*\///g'
     clang-format -i -verbose "$WD/src"/*.h 2>&1 | sed 's/\/.*\///g'
-    # NOTE: Order matters for  `-l...`, apparently.
-    gcc \
-        -lm \
-        -I"${PATH_GLFW}/include" \
-        -L"${PATH_GLFW}/lib" \
-        -lglfw \
-        -L"${PATH_LIBGL}/lib" \
-        -lGL \
-        -lX11 \
-        -lXfixes \
-        "${flags[@]}" \
-        -o "$WD/bin/main" \
-        "$WD/src/main.c"
+    gcc "${libs[@]}" "${flags[@]}" -o "$WD/bin/main" "$WD/src/main.c"
     end=$(now)
     python3 -c "print(\"Compiled! ({:.3f}s)\n\".format(${end} - ${start}))"
 )
