@@ -19,47 +19,28 @@ typedef struct {
 // clang-format off
 static const f32 POSITIONS_COLORS[] = {
     // NOTE: (x,y,z)        // NOTE: (r,g,b)
-    -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,    1.0f, 0.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,    1.0f, 1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,    1.0f, 1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,    0.0f, 1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
-
-    -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,    1.0f, 0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,    1.0f, 1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,    1.0f, 1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,    0.0f, 1.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
-
-    -0.5f,  0.5f,  0.5f,    0.0f, 1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,    0.0f, 1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,    0.0f, 1.0f, 1.0f,
-
-     0.5f,  0.5f,  0.5f,    1.0f, 1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,    1.0f, 1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,    1.0f, 0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,    1.0f, 0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,    1.0f, 0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,    1.0f, 1.0f, 1.0f,
-
-    -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,    1.0f, 0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,    1.0f, 0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,    1.0f, 0.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f,
-
-    -0.5f,  0.5f, -0.5f,    0.0f, 1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,    1.0f, 1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,    1.0f, 1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,    1.0f, 1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,    0.0f, 1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,    0.0f, 1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f, //  0
+     0.5f, -0.5f, -0.5f,    1.0f, 0.0f, 0.0f, //  1
+     0.5f,  0.5f, -0.5f,    1.0f, 1.0f, 1.0f, //  2
+    -0.5f,  0.5f, -0.5f,    0.0f, 1.0f, 1.0f, //  3
+    -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f, //  4
+     0.5f, -0.5f,  0.5f,    1.0f, 0.0f, 0.0f, //  5
+     0.5f,  0.5f,  0.5f,    1.0f, 1.0f, 1.0f, //  6
+    -0.5f,  0.5f,  0.5f,    0.0f, 1.0f, 1.0f, //  7
+};
+static const u32 INDICES[] = {
+    0, 1, 2,
+    2, 3, 0,
+    4, 5, 6,
+    6, 7, 4,
+    7, 3, 0,
+    0, 4, 7,
+    6, 2, 1,
+    1, 5, 6,
+    0, 1, 5,
+    5, 4, 0,
+    3, 2, 6,
+    6, 7, 3,
 };
 static const f32 COORDS[] = {
     -4.5f,
@@ -86,14 +67,14 @@ static const Vec3 MODEL_SCALE = {
 
 static Mat4       VIEW;
 static const Vec3 VIEW_EYE = {
-    .x = 0.0f,
-    .y = 8.0f,
-    .z = 9.0f, // NOTE: Forward-and-back distance to object.
+    .x = -7.5f,
+    .y = 0.0f,
+    .z = -8.5f, // NOTE: Forward-and-back distance to object.
 };
 static const Vec3 VIEW_TARGET = {
-    .x = -0.225f,
-    .y = -0.75f,
-    .z = 1.0f,
+    .x = -1.0f,
+    .y = 0.0f,
+    .z = 0.0f,
 };
 static const Vec3 VIEW_UP = {
     .x = 0.0f, // NOTE: `x`-axis is left/right.
@@ -112,7 +93,12 @@ static const Vec3 TRANSFORM_AXIS = {
 
 static u32 VAO;
 static u32 VBO;
+static u32 EBO;
 static u32 IVBO;
+
+static const u32 INDEX_POSITION = 0;
+static const u32 INDEX_COLOR = 1;
+static const u32 INDEX_TRANSLATE = 2;
 
 static void set_translations(void) {
     u8 k = 0;
@@ -143,7 +129,6 @@ static void set_vertex_attrib(u32 index, i32 size, i32 stride, void* offset) {
 static void set_objects(void) {
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
-    u32 index = 0;
     {
         glGenBuffers(1, &VBO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -153,12 +138,20 @@ static void set_objects(void) {
                      GL_STATIC_DRAW);
         i32 position_width = 3;
         i32 color_width = 3;
-        i32 stride = (i32)sizeof(f32) * (position_width + color_width);
-        set_vertex_attrib(index++, position_width, stride, (void*)0);
-        set_vertex_attrib(index++,
+        i32 stride = ((i32)(sizeof(f32))) * (position_width + color_width);
+        set_vertex_attrib(INDEX_POSITION, position_width, stride, (void*)0);
+        set_vertex_attrib(INDEX_COLOR,
                           color_width,
                           stride,
                           (void*)(sizeof(f32) * (usize)position_width));
+    }
+    {
+        glGenBuffers(1, &EBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                     sizeof(INDICES),
+                     INDICES,
+                     GL_STATIC_DRAW);
     }
     {
         set_translations();
@@ -172,9 +165,10 @@ static void set_objects(void) {
         // NOTE: Instances are limited to `sizeof(f32) * 4`, so `Mat4` data
         // must be constructed in four parts.
         usize offset = sizeof(f32) * 4;
-        for (usize i = 0; i < 4; ++i) {
+        for (u32 i = 0; i < 4; ++i) {
+            u32 index = INDEX_TRANSLATE + i;
             set_vertex_attrib(index, 4, stride, (void*)(i * offset));
-            glVertexAttribDivisor(index++, 1);
+            glVertexAttribDivisor(index, 1);
         }
     }
     glEnable(GL_DEPTH_TEST);
@@ -216,20 +210,23 @@ static void set_state(State* state) {
 }
 
 static void set_draw(void) {
+    printf("%u\n", VAO);
     glClearColor(0.175f, 0.175f, 0.175f, 1.0f);
 }
 
 static void draw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDrawArraysInstanced(GL_TRIANGLES,
-                          0,
-                          36,
-                          sizeof(TRANSLATIONS) / sizeof(TRANSLATIONS[0]));
+    glDrawElementsInstanced(GL_TRIANGLES,
+                            sizeof(INDICES) / sizeof(INDICES[0]),
+                            GL_UNSIGNED_INT,
+                            0,
+                            sizeof(TRANSLATIONS) / sizeof(TRANSLATIONS[0]));
 }
 
 static void free_scene(void) {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
     glDeleteBuffers(1, &IVBO);
 }
 
