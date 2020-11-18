@@ -210,7 +210,6 @@ static void set_state(State* state) {
 }
 
 static void set_draw(void) {
-    printf("%u\n", VAO);
     glClearColor(0.175f, 0.175f, 0.175f, 1.0f);
 }
 
@@ -219,7 +218,7 @@ static void draw() {
     glDrawElementsInstanced(GL_TRIANGLES,
                             sizeof(INDICES) / sizeof(INDICES[0]),
                             GL_UNSIGNED_INT,
-                            0,
+                            (void*)0,
                             sizeof(TRANSLATIONS) / sizeof(TRANSLATIONS[0]));
 }
 
