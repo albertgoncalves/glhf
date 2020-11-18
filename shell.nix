@@ -8,6 +8,9 @@ mkShell {
         python3
         shellcheck
         valgrind
+        xorg.libX11
+        xorg.libXfixes
+        xorg.libXrandr
     ];
     shellHook = ''
         export PATH_GLFW="${glfw3}"

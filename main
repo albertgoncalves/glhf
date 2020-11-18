@@ -67,6 +67,8 @@ now () {
         -lglfw \
         -L"${PATH_LIBGL}/lib" \
         -lGL \
+        -lX11 \
+        -lXfixes \
         "${flags[@]}" \
         -o "$WD/bin/main" \
         "$WD/src/main.c"

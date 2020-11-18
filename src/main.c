@@ -6,6 +6,29 @@
 
 #include "scene.h"
 
+// NOTE: This is a hack to hide mouse cursor. At the moment, seems like
+// `glfwSetInputMode(..., GLFW_CURSOR_DISABLED)` fails to properly hide cursor.
+// See `https://github.com/glfw/glfw/issues/1790`.
+#define GLFW_EXPOSE_NATIVE_X11
+
+#include <GLFW/glfw3native.h>
+#include <X11/extensions/Xfixes.h>
+
+typedef struct {
+    Display* display;
+    Window   window;
+} Native;
+
+static void hide_cursor(Native native) {
+    XFixesHideCursor(native.display, native.window);
+    XFlush(native.display);
+}
+
+static void show_cursor(Native native) {
+    XFixesShowCursor(native.display, native.window);
+    XFlush(native.display);
+}
+
 typedef struct {
     f32 start;
     f32 step;
@@ -97,7 +120,13 @@ i32 main(i32 n, const char** args) {
                               get_shader(memory, args[1], GL_VERTEX_SHADER),
                               get_shader(memory, args[2], GL_FRAGMENT_SHADER));
     set_objects();
+    Native native = {
+        .display = glfwGetX11Display(),
+        .window = glfwGetX11Window(window),
+    };
+    hide_cursor(native);
     loop(window, program);
+    show_cursor(native);
     free_scene();
     glDeleteProgram(program);
     glfwTerminate();
