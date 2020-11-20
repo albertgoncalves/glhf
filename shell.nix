@@ -5,6 +5,7 @@ mkShell {
         cppcheck
         glfw3
         libGL
+        linuxPackages.perf
         python3
         shellcheck
         valgrind

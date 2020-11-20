@@ -433,22 +433,21 @@ static void set_frame(Frame* frame) {
         usleep((u32)(FRAME_DURATION - elapsed));
     }
     if (++frame->fps_count == 30) {
-        fprintf(stderr,
-                "\033[4A"
-                "fps    :%8.2f\n"
-                "eye    :%8.2f%8.2f%8.2f\n"
-                "target :%8.2f%8.2f%8.2f\n"
-                "up     :%8.2f%8.2f%8.2f\n",
-                frame->fps_count / (now - frame->fps_time) * MICROSECONDS,
-                VIEW_EYE.x,
-                VIEW_EYE.y,
-                VIEW_EYE.z,
-                VIEW_TARGET.x,
-                VIEW_TARGET.y,
-                VIEW_TARGET.z,
-                VIEW_UP.x,
-                VIEW_UP.y,
-                VIEW_UP.z);
+        printf("\033[4A"
+               "fps    :%8.2f\n"
+               "eye    :%8.2f%8.2f%8.2f\n"
+               "target :%8.2f%8.2f%8.2f\n"
+               "up     :%8.2f%8.2f%8.2f\n",
+               frame->fps_count / (now - frame->fps_time) * MICROSECONDS,
+               VIEW_EYE.x,
+               VIEW_EYE.y,
+               VIEW_EYE.z,
+               VIEW_TARGET.x,
+               VIEW_TARGET.y,
+               VIEW_TARGET.z,
+               VIEW_UP.x,
+               VIEW_UP.y,
+               VIEW_UP.z);
         frame->fps_time = frame->time;
         frame->fps_count = 0;
     }

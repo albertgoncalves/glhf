@@ -9,3 +9,4 @@
 !*.c
 !*.glsl
 !main
+!profile
