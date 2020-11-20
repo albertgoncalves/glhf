@@ -79,17 +79,21 @@ static const u32 INDICES[] = {
     6, 7, 3,
 };
 static const f32 COORDS[] = {
-    -7.5f,
-    -4.5f,
-    -1.5f,
-     1.5f,
-     4.5f,
-     7.5f,
+    -10.5f,
+     -7.5f,
+     -4.5f,
+     -1.5f,
+      1.5f,
+      4.5f,
+      7.5f,
+     10.5f,
 };
 // clang-format on
 
+static u8 COUNT_COORDS = sizeof(COORDS) / sizeof(COORDS[0]);
+
 // NOTE: `COUNT_TRANSLATIONS == (COUNT_COORDS * COUNT_COORDS)`
-#define COUNT_TRANSLATIONS 36
+#define COUNT_TRANSLATIONS 64
 
 static Mat4 TRANSLATIONS[COUNT_TRANSLATIONS];
 
@@ -302,17 +306,17 @@ static u32 get_program(Memory* memory,
 
 static void set_translations(void) {
     u8 k = 0;
-    for (u8 i = 0; i < 6; ++i) {
+    for (u8 i = 0; i < COUNT_COORDS; ++i) {
         if (COUNT_TRANSLATIONS < k) {
             ERROR("COUNT_TRANSLATIONS < k");
         }
-        for (u8 j = 0; j < 6; ++j) {
+        for (u8 j = 0; j < COUNT_COORDS; ++j) {
             Vec3 position = {
                 .x = COORDS[i],
-                .y = 0.0f,
-                .z = COORDS[j],
+                .y = -COORDS[j],
+                .z = 0.0f,
             };
-            f32  size = 1.0f / sqrtf((f32)k + 1.0f);
+            f32  size = 2.0f / sqrtf((f32)k + 1.0f);
             Vec3 scale = {
                 .x = size,
                 .y = size,
