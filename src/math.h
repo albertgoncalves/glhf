@@ -1,10 +1,10 @@
 #ifndef __MATH_H__
 #define __MATH_H__
 
+#include "prelude.h"
+
 #include <immintrin.h>
 #include <math.h>
-
-#include "prelude.h"
 
 #define PI 3.1415926535897932385f
 

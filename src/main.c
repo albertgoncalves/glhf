@@ -1,15 +1,12 @@
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "math.h"
+#include "memory.h"
+
 #include <string.h>
 #include <unistd.h>
 
 #define GL_GLEXT_PROTOTYPES
 
 #include <GLFW/glfw3.h>
-
-#include "math.h"
-#include "memory.h"
 
 // NOTE: This is a hack to hide the mouse cursor; at the moment, seems like
 // `glfwSetInputMode(..., GLFW_CURSOR_DISABLED)` doesn't work as intended.
@@ -44,14 +41,15 @@ typedef struct {
     u8  fps_count;
 } Frame;
 
-#define WINDOW_WIDTH  1024
-#define WINDOW_HEIGHT 768
-
 #define MICROSECONDS 1000000.0f
-#define FRAME_STEP   1000.0f
-#define MOVE_SPEED   0.01f
+
+#define FRAME_UPDATE_COUNT 10
 
 static const f32 FRAME_DURATION = (1.0f / 60.0f) * MICROSECONDS;
+static const f32 FRAME_UPDATE_STEP = FRAME_DURATION / FRAME_UPDATE_COUNT;
+
+#define WINDOW_WIDTH  1024
+#define WINDOW_HEIGHT 768
 
 // clang-format off
 static const f32 POSITIONS_COLORS[] = {
@@ -81,14 +79,19 @@ static const u32 INDICES[] = {
     6, 7, 3,
 };
 static const f32 COORDS[] = {
+    -7.5f,
     -4.5f,
     -1.5f,
      1.5f,
      4.5f,
+     7.5f,
 };
 // clang-format on
 
-static Mat4 TRANSLATIONS[16];
+// NOTE: `COUNT_TRANSLATIONS == (COUNT_COORDS * COUNT_COORDS)`
+#define COUNT_TRANSLATIONS 36
+
+static Mat4 TRANSLATIONS[COUNT_TRANSLATIONS];
 
 static Mat4       MODEL;
 static const f32  MODEL_DEGREES = 15.0f;
@@ -103,10 +106,12 @@ static const Vec3 MODEL_SCALE = {
     .z = 1.0f,
 };
 
+#define VIEW_EYE_Y 1.75f
+
 static Mat4 VIEW;
 static Vec3 VIEW_EYE = {
     .x = 0.0f,
-    .y = 0.0f,
+    .y = VIEW_EYE_Y,
     .z = 3.0f, // NOTE: Forward-and-back distance to object.
 };
 static Vec3 VIEW_TARGET = {
@@ -120,16 +125,23 @@ static const Vec3 VIEW_UP = {
     .z = 0.0f, // NOTE: `z`-axis is forward/back.
 };
 
-static f32 CURSOR_X = WINDOW_WIDTH / 2.0;
-static f32 CURSOR_Y = WINDOW_HEIGHT / 2.0;
+#define KEY_SENSITIVITY 0.01f
 
-#define CURSOR_SENSITIVITY 5.0f
+static f32 CURSOR_X;
+static f32 CURSOR_Y;
+
+#define CURSOR_SENSITIVITY 0.15f
+
+static f32 CURSOR_X_DELTA = 0.0f;
+static f32 CURSOR_Y_DELTA = 0.0f;
 
 #define VIEW_NEAR 0.1f
 #define VIEW_FAR  100.0f
 
 static f32 VIEW_YAW = -90.0f;
 static f32 VIEW_PITCH = 0.0f;
+
+#define PITCH_LIMIT 89.0f
 
 static Mat4 PROJECTION;
 
@@ -159,6 +171,64 @@ static void show_cursor(Native native) {
     XFlush(native.display);
 }
 
+static void set_input(GLFWwindow* window) {
+    glfwPollEvents();
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, TRUE);
+    }
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        VIEW_EYE =
+            add_vec3(VIEW_EYE, mul_vec3_f32(VIEW_TARGET, KEY_SENSITIVITY));
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        VIEW_EYE =
+            sub_vec3(VIEW_EYE, mul_vec3_f32(VIEW_TARGET, KEY_SENSITIVITY));
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        VIEW_EYE =
+            sub_vec3(VIEW_EYE,
+                     mul_vec3_f32(norm_vec3(cross_vec3(VIEW_TARGET, VIEW_UP)),
+                                  KEY_SENSITIVITY));
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        VIEW_EYE =
+            add_vec3(VIEW_EYE,
+                     mul_vec3_f32(norm_vec3(cross_vec3(VIEW_TARGET, VIEW_UP)),
+                                  KEY_SENSITIVITY));
+    }
+    VIEW_EYE.y = VIEW_EYE_Y;
+}
+
+#define CURSOR_CALLBACK(x, y)                                            \
+    {                                                                    \
+        CURSOR_X = (f32)x;                                               \
+        CURSOR_Y = (f32)y;                                               \
+        VIEW_YAW += CURSOR_X_DELTA;                                      \
+        VIEW_PITCH += CURSOR_Y_DELTA;                                    \
+        if (PITCH_LIMIT < VIEW_PITCH) {                                  \
+            VIEW_PITCH = PITCH_LIMIT;                                    \
+        } else if (VIEW_PITCH < -PITCH_LIMIT) {                          \
+            VIEW_PITCH = -PITCH_LIMIT;                                   \
+        }                                                                \
+        VIEW_TARGET.x =                                                  \
+            cosf(get_radians(VIEW_YAW)) * cosf(get_radians(VIEW_PITCH)); \
+        VIEW_TARGET.y = sinf(get_radians(VIEW_PITCH));                   \
+        VIEW_TARGET.z =                                                  \
+            sinf(get_radians(VIEW_YAW)) * cosf(get_radians(VIEW_PITCH)); \
+        VIEW_TARGET = norm_vec3(VIEW_TARGET);                            \
+    }
+
+static void cursor_callback(GLFWwindow* _, f64 x, f64 y) {
+    CURSOR_X_DELTA = ((f32)x - CURSOR_X) * CURSOR_SENSITIVITY;
+    CURSOR_Y_DELTA = (CURSOR_Y - (f32)y) * CURSOR_SENSITIVITY;
+    CURSOR_CALLBACK(x, y);
+}
+
+static void init_cursor_callback(GLFWwindow* window, f64 x, f64 y) {
+    CURSOR_CALLBACK(x, y);
+    glfwSetCursorPosCallback(window, cursor_callback);
+}
+
 static void framebuffer_size_callback(GLFWwindow* _, i32 width, i32 height) {
     glViewport(0, 0, width, height);
 }
@@ -181,7 +251,7 @@ static GLFWwindow* get_window(const char* name) {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     // NOTE: This seems to have no effect. See
     // `https://github.com/glfw/glfw/issues/1559`.
-    glfwSwapInterval(0);
+    glfwSwapInterval(1);
     return window;
 }
 
@@ -229,8 +299,11 @@ static u32 get_program(Memory* memory,
 
 static void set_translations(void) {
     u8 k = 0;
-    for (u8 i = 0; i < 4; ++i) {
-        for (u8 j = 0; j < 4; ++j) {
+    for (u8 i = 0; i < 6; ++i) {
+        if (COUNT_TRANSLATIONS < k) {
+            ERROR("COUNT_TRANSLATIONS < k");
+        }
+        for (u8 j = 0; j < 6; ++j) {
             Vec3 position = {
                 .x = COORDS[i],
                 .y = 0.0f,
@@ -335,69 +408,15 @@ static void set_dynamic_uniforms(Uniforms uniforms, State state) {
     glUniformMatrix4fv(uniforms.transform, 1, FALSE, &TRANSFORM.cell[0][0]);
 }
 
-static void draw() {
+static void draw(GLFWwindow* window) {
     glBindVertexArray(VAO);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDrawElementsInstanced(GL_TRIANGLES,
                             sizeof(INDICES) / sizeof(INDICES[0]),
                             GL_UNSIGNED_INT,
                             (void*)POSITION_OFFSET,
-                            sizeof(TRANSLATIONS) / sizeof(TRANSLATIONS[0]));
-}
-
-static void set_input(GLFWwindow* window) {
-    glfwPollEvents();
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, TRUE);
-    }
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        VIEW_EYE = add_vec3(VIEW_EYE, mul_vec3_f32(VIEW_TARGET, MOVE_SPEED));
-    }
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        VIEW_EYE = sub_vec3(VIEW_EYE, mul_vec3_f32(VIEW_TARGET, MOVE_SPEED));
-    }
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        VIEW_EYE =
-            sub_vec3(VIEW_EYE,
-                     mul_vec3_f32(norm_vec3(cross_vec3(VIEW_TARGET, VIEW_UP)),
-                                  MOVE_SPEED));
-    }
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        VIEW_EYE = add_vec3(
-            VIEW_EYE,
-            mul_vec3_f32(norm_vec3(cross_vec3(VIEW_TARGET, VIEW_UP)), 0.01f));
-    }
-    VIEW_EYE.y = 0.0f;
-}
-
-static Bool CURSOR_INIT = TRUE;
-
-static void cursor_callback(GLFWwindow* _, f64 x, f64 y) {
-    f32 x_delta;
-    f32 y_delta;
-    if (CURSOR_INIT) {
-        x_delta = 0.0f;
-        y_delta = 0.0f;
-        CURSOR_INIT = FALSE;
-    } else {
-        x_delta = ((f32)x - CURSOR_X) / CURSOR_SENSITIVITY;
-        y_delta = (CURSOR_Y - (f32)y) / CURSOR_SENSITIVITY;
-    }
-    CURSOR_X = (f32)x;
-    CURSOR_Y = (f32)y;
-    VIEW_YAW += x_delta;
-    VIEW_PITCH += y_delta;
-    if (89.0f < VIEW_PITCH) {
-        VIEW_PITCH = 89.0f;
-    } else if (VIEW_PITCH < -89.0f) {
-        VIEW_PITCH = -89.0f;
-    }
-    VIEW_TARGET.x =
-        cosf(get_radians(VIEW_YAW)) * cosf(get_radians(VIEW_PITCH));
-    VIEW_TARGET.y = sinf(get_radians(VIEW_PITCH));
-    VIEW_TARGET.z =
-        sinf(get_radians(VIEW_YAW)) * cosf(get_radians(VIEW_PITCH));
-    VIEW_TARGET = norm_vec3(VIEW_TARGET);
+                            COUNT_TRANSLATIONS);
+    glfwSwapBuffers(window);
 }
 
 static void set_frame(Frame* frame) {
@@ -420,19 +439,18 @@ static void loop(GLFWwindow* window, u32 program) {
     Frame    frame = {0};
     Uniforms uniforms = get_uniforms(program);
     set_static_uniforms(uniforms);
-    glClearColor(0.175f, 0.175f, 0.175f, 1.0f);
+    glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
     printf("\n");
     while (!glfwWindowShouldClose(window)) {
         state.time = (f32)glfwGetTime();
         frame.time = state.time * MICROSECONDS;
         frame.delta += frame.time - frame.prev;
-        while (FRAME_STEP < frame.delta) {
+        while (FRAME_UPDATE_STEP < frame.delta) {
             set_input(window);
-            frame.delta -= FRAME_STEP;
+            frame.delta -= FRAME_UPDATE_STEP;
         }
         set_dynamic_uniforms(uniforms, state);
         draw(window);
-        glfwSwapBuffers(window);
         set_frame(&frame);
     }
 }
@@ -481,7 +499,7 @@ i32 main(i32 n, const char** args) {
         .window = glfwGetX11Window(window),
     };
     hide_cursor(native);
-    glfwSetCursorPosCallback(window, cursor_callback);
+    glfwSetCursorPosCallback(window, init_cursor_callback);
     loop(window, program);
     show_cursor(native);
     glDeleteVertexArrays(1, &VAO);
