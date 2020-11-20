@@ -106,13 +106,13 @@ static const Vec3 MODEL_SCALE = {
     .z = 1.0f,
 };
 
-#define VIEW_EYE_Y 1.75f
+#define VIEW_EYE_Y 0.0f
 
 static Mat4 VIEW;
 static Vec3 VIEW_EYE = {
     .x = 0.0f,
     .y = VIEW_EYE_Y,
-    .z = 3.0f, // NOTE: Forward-and-back distance to object.
+    .z = 20.0f,
 };
 static Vec3 VIEW_TARGET = {
     .x = 0.0f,
@@ -130,7 +130,7 @@ static const Vec3 VIEW_UP = {
 static f32 CURSOR_X;
 static f32 CURSOR_Y;
 
-#define CURSOR_SENSITIVITY 0.15f
+#define CURSOR_SENSITIVITY 0.1f
 
 static f32 CURSOR_X_DELTA = 0.0f;
 static f32 CURSOR_Y_DELTA = 0.0f;
@@ -171,32 +171,35 @@ static void show_cursor(Native native) {
     XFlush(native.display);
 }
 
+#define NORM_CROSS(a, b) norm_vec3(cross_vec3(a, b))
+
 static void set_input(GLFWwindow* window) {
     glfwPollEvents();
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, TRUE);
     }
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        VIEW_EYE =
-            add_vec3(VIEW_EYE, mul_vec3_f32(VIEW_TARGET, KEY_SENSITIVITY));
+        VIEW_EYE = sub_vec3(
+            VIEW_EYE,
+            mul_vec3_f32(NORM_CROSS(cross_vec3(VIEW_TARGET, VIEW_UP), VIEW_UP),
+                         KEY_SENSITIVITY));
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        VIEW_EYE =
-            sub_vec3(VIEW_EYE, mul_vec3_f32(VIEW_TARGET, KEY_SENSITIVITY));
+        VIEW_EYE = add_vec3(
+            VIEW_EYE,
+            mul_vec3_f32(NORM_CROSS(cross_vec3(VIEW_TARGET, VIEW_UP), VIEW_UP),
+                         KEY_SENSITIVITY));
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        VIEW_EYE =
-            sub_vec3(VIEW_EYE,
-                     mul_vec3_f32(norm_vec3(cross_vec3(VIEW_TARGET, VIEW_UP)),
-                                  KEY_SENSITIVITY));
+        VIEW_EYE = sub_vec3(
+            VIEW_EYE,
+            mul_vec3_f32(NORM_CROSS(VIEW_TARGET, VIEW_UP), KEY_SENSITIVITY));
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        VIEW_EYE =
-            add_vec3(VIEW_EYE,
-                     mul_vec3_f32(norm_vec3(cross_vec3(VIEW_TARGET, VIEW_UP)),
-                                  KEY_SENSITIVITY));
+        VIEW_EYE = add_vec3(
+            VIEW_EYE,
+            mul_vec3_f32(NORM_CROSS(VIEW_TARGET, VIEW_UP), KEY_SENSITIVITY));
     }
-    VIEW_EYE.y = VIEW_EYE_Y;
 }
 
 #define CURSOR_CALLBACK(x, y)                                            \
@@ -426,8 +429,22 @@ static void set_frame(Frame* frame) {
         usleep((u32)(FRAME_DURATION - elapsed));
     }
     if (++frame->fps_count == 30) {
-        printf("\033[1A%10.4f fps\n",
-               frame->fps_count / (now - frame->fps_time) * MICROSECONDS);
+        fprintf(stderr,
+                "\033[4A"
+                "fps    :%8.2f\n"
+                "eye    :%8.2f%8.2f%8.2f\n"
+                "target :%8.2f%8.2f%8.2f\n"
+                "up     :%8.2f%8.2f%8.2f\n",
+                frame->fps_count / (now - frame->fps_time) * MICROSECONDS,
+                VIEW_EYE.x,
+                VIEW_EYE.y,
+                VIEW_EYE.z,
+                VIEW_TARGET.x,
+                VIEW_TARGET.y,
+                VIEW_TARGET.z,
+                VIEW_UP.x,
+                VIEW_UP.y,
+                VIEW_UP.z);
         frame->fps_time = frame->time;
         frame->fps_count = 0;
     }
@@ -440,7 +457,7 @@ static void loop(GLFWwindow* window, u32 program) {
     Uniforms uniforms = get_uniforms(program);
     set_static_uniforms(uniforms);
     glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
-    printf("\n");
+    printf("\n\n\n\n");
     while (!glfwWindowShouldClose(window)) {
         state.time = (f32)glfwGetTime();
         frame.time = state.time * MICROSECONDS;
