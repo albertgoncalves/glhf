@@ -39,15 +39,6 @@ static f32 get_degrees(f32 radians) {
     return (radians * 180.0f) / PI;
 }
 
-static Simd4F32 linear_combine(Simd4F32 l, Mat4 r) {
-    Simd4F32 out;
-    out = _mm_mul_ps(_mm_shuffle_ps(l, l, 0x00), r.column[0]);
-    out = _mm_add_ps(out, _mm_mul_ps(_mm_shuffle_ps(l, l, 0x55), r.column[1]));
-    out = _mm_add_ps(out, _mm_mul_ps(_mm_shuffle_ps(l, l, 0xaa), r.column[2]));
-    out = _mm_add_ps(out, _mm_mul_ps(_mm_shuffle_ps(l, l, 0xff), r.column[3]));
-    return out;
-}
-
 static Vec3 add_vec3(Vec3 l, Vec3 r) {
     Vec3 out = {
         .x = l.x + r.x,
@@ -63,6 +54,51 @@ static Vec3 mul_vec3_f32(Vec3 l, f32 r) {
         .y = l.y * r,
         .z = l.z * r,
     };
+    return out;
+}
+
+static Vec3 sub_vec3(Vec3 l, Vec3 r) {
+    Vec3 out = {
+        .x = l.x - r.x,
+        .y = l.y - r.y,
+        .z = l.z - r.z,
+    };
+    return out;
+}
+
+static Vec3 cross_vec3(Vec3 l, Vec3 r) {
+    Vec3 out = {
+        .x = (l.y * r.z) - (l.z * r.y),
+        .y = (l.z * r.x) - (l.x * r.z),
+        .z = (l.x * r.y) - (l.y * r.x),
+    };
+    return out;
+}
+
+static f32 dot_vec3(Vec3 l, Vec3 r) {
+    return (l.x * r.x) + (l.y * r.y) + (l.z * r.z);
+}
+
+static f32 len_vec3(Vec3 v) {
+    return sqrtf(dot_vec3(v, v));
+}
+
+static Vec3 norm_vec3(Vec3 v) {
+    f32  len = len_vec3(v);
+    Vec3 out = {
+        .x = v.x / len,
+        .y = v.y / len,
+        .z = v.z / len,
+    };
+    return out;
+}
+
+static Simd4F32 linear_combine(Simd4F32 l, Mat4 r) {
+    Simd4F32 out;
+    out = _mm_mul_ps(_mm_shuffle_ps(l, l, 0x00), r.column[0]);
+    out = _mm_add_ps(out, _mm_mul_ps(_mm_shuffle_ps(l, l, 0x55), r.column[1]));
+    out = _mm_add_ps(out, _mm_mul_ps(_mm_shuffle_ps(l, l, 0xaa), r.column[2]));
+    out = _mm_add_ps(out, _mm_mul_ps(_mm_shuffle_ps(l, l, 0xff), r.column[3]));
     return out;
 }
 
@@ -97,24 +133,6 @@ static Mat4 scale_mat4(Vec3 scale) {
     out.cell[0][0] = scale.x;
     out.cell[1][1] = scale.y;
     out.cell[2][2] = scale.z;
-    return out;
-}
-
-static f32 dot_vec3(Vec3 l, Vec3 r) {
-    return (l.x * r.x) + (l.y * r.y) + (l.z * r.z);
-}
-
-static f32 len_vec3(Vec3 v) {
-    return sqrtf(dot_vec3(v, v));
-}
-
-static Vec3 norm_vec3(Vec3 v) {
-    f32  len = len_vec3(v);
-    Vec3 out = {
-        .x = v.x / len,
-        .y = v.y / len,
-        .z = v.z / len,
-    };
     return out;
 }
 
@@ -154,24 +172,6 @@ static Mat4 perspective_mat4(f32 fov_radians,
     out.cell[2][2] = (near + far) / (near - far);
     out.cell[3][2] = (near * far * 2.0f) / (near - far);
     out.cell[3][3] = 0.0f;
-    return out;
-}
-
-static Vec3 sub_vec3(Vec3 l, Vec3 r) {
-    Vec3 out = {
-        .x = l.x - r.x,
-        .y = l.y - r.y,
-        .z = l.z - r.z,
-    };
-    return out;
-}
-
-static Vec3 cross_vec3(Vec3 l, Vec3 r) {
-    Vec3 out = {
-        .x = (l.y * r.z) - (l.z * r.y),
-        .y = (l.z * r.x) - (l.x * r.z),
-        .z = (l.x * r.y) - (l.y * r.x),
-    };
     return out;
 }
 
