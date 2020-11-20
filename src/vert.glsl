@@ -8,10 +8,10 @@ layout(location = 2) in mat4 IN_TRANSLATE;
 
 out vec4 VERT_OUT_COLOR;
 
-uniform float U_TIME;
 uniform mat4  U_MODEL;
-uniform mat4  U_VIEW;
 uniform mat4  U_PROJECTION;
+uniform float U_TIME;
+uniform mat4  U_VIEW;
 uniform mat4  U_TRANSFORM;
 
 void main() {

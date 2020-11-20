@@ -48,6 +48,24 @@ static Simd4F32 linear_combine(Simd4F32 l, Mat4 r) {
     return out;
 }
 
+static Vec3 add_vec3(Vec3 l, Vec3 r) {
+    Vec3 out = {
+        .x = l.x + r.x,
+        .y = l.y + r.y,
+        .z = l.z + r.z,
+    };
+    return out;
+}
+
+static Vec3 mul_vec3_f32(Vec3 l, f32 r) {
+    Vec3 out = {
+        .x = l.x * r,
+        .y = l.y * r,
+        .z = l.z * r,
+    };
+    return out;
+}
+
 static Mat4 mul_mat4(Mat4 l, Mat4 r) {
     Mat4 out;
     out.column[0] = linear_combine(r.column[0], l);
