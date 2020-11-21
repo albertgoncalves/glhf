@@ -1,5 +1,4 @@
 #include "math.h"
-#include "memory.h"
 
 #include <string.h>
 #include <unistd.h>
@@ -20,6 +19,12 @@ typedef struct {
     Display* display;
     Window   window;
 } Native;
+
+#define SIZE_BUFFER 1024
+
+typedef struct {
+    char buffer[SIZE_BUFFER];
+} Memory;
 
 typedef struct {
     i32 model;
@@ -260,6 +265,24 @@ static GLFWwindow* get_window(const char* name) {
     // `https://github.com/glfw/glfw/issues/1559`.
     glfwSwapInterval(1);
     return window;
+}
+
+static void set_file(Memory* memory, const char* filename) {
+    File* file = fopen(filename, "r");
+    if (!file) {
+        ERROR("Unable to open file");
+    }
+    fseek(file, 0, SEEK_END);
+    u32 file_size = (u32)ftell(file);
+    if (sizeof(memory->buffer) <= file_size) {
+        ERROR("sizeof(memory->buffer) <= file_size");
+    }
+    rewind(file);
+    memory->buffer[file_size] = '\0';
+    if (fread(&memory->buffer, sizeof(char), file_size, file) != file_size) {
+        ERROR("`fread` failed");
+    }
+    fclose(file);
 }
 
 static u32 get_shader(Memory* memory, const char* filename, GLenum type) {
