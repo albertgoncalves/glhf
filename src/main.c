@@ -105,9 +105,9 @@ static const Vec3 MODEL_AXIS = {
     .z = 1.0f,
 };
 static const Vec3 MODEL_SCALE = {
-    .x = 1.0f,
-    .y = 1.0f,
-    .z = 1.0f,
+    .x = 1.25f,
+    .y = 1.25f,
+    .z = 1.25f,
 };
 
 #define VIEW_EYE_Y 0.0f
@@ -386,10 +386,10 @@ static void set_objects(void) {
 
 static Uniforms get_uniforms(u32 program) {
     Uniforms uniforms = {
-        .time = glGetUniformLocation(program, "U_TIME"),
         .model = glGetUniformLocation(program, "U_MODEL"),
-        .view = glGetUniformLocation(program, "U_VIEW"),
         .projection = glGetUniformLocation(program, "U_PROJECTION"),
+        .view = glGetUniformLocation(program, "U_VIEW"),
+        .time = glGetUniformLocation(program, "U_TIME"),
         .transform = glGetUniformLocation(program, "U_TRANSFORM"),
     };
     return uniforms;
