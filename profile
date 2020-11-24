@@ -8,9 +8,8 @@ perf record \
     --call-graph fp \
     "$WD/bin/main" "$WD/src/vert.glsl" "$WD/src/frag.glsl"
 perf report
+rm perf.data*
 valgrind --tool=cachegrind \
     --branch-sim=yes \
     "$WD/bin/main" "$WD/src/vert.glsl" "$WD/src/frag.glsl"
 rm cachegrind.out*
-rm perf.data*
-rm vgcore* || true
