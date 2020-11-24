@@ -14,11 +14,11 @@ typedef struct {
     f32 z;
 } Vec3;
 
-typedef __m128 Simd4F32;
+typedef __m128 Simd4f32;
 
 typedef union {
     f32      cell[4][4];
-    Simd4F32 column[4];
+    Simd4f32 column[4];
 } Mat4;
 
 static void print_mat4(Mat4 x) {
@@ -93,8 +93,8 @@ static Vec3 norm_vec3(Vec3 v) {
     return out;
 }
 
-static Simd4F32 linear_combine(Simd4F32 l, Mat4 r) {
-    Simd4F32 out;
+static Simd4f32 linear_combine(Simd4f32 l, Mat4 r) {
+    Simd4f32 out;
     out = _mm_mul_ps(_mm_shuffle_ps(l, l, 0x00), r.column[0]);
     out = _mm_add_ps(out, _mm_mul_ps(_mm_shuffle_ps(l, l, 0x55), r.column[1]));
     out = _mm_add_ps(out, _mm_mul_ps(_mm_shuffle_ps(l, l, 0xaa), r.column[2]));
