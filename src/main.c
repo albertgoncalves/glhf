@@ -29,8 +29,8 @@ typedef struct {
 typedef struct {
     i32 model;
     i32 projection;
-    i32 view;
     i32 time;
+    i32 view;
     i32 transform;
 } Uniforms;
 
@@ -411,8 +411,8 @@ static Uniforms get_uniforms(u32 program) {
     Uniforms uniforms = {
         .model = glGetUniformLocation(program, "U_MODEL"),
         .projection = glGetUniformLocation(program, "U_PROJECTION"),
-        .view = glGetUniformLocation(program, "U_VIEW"),
         .time = glGetUniformLocation(program, "U_TIME"),
+        .view = glGetUniformLocation(program, "U_VIEW"),
         .transform = glGetUniformLocation(program, "U_TRANSFORM"),
     };
     return uniforms;
