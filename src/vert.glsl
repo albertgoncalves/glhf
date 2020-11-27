@@ -19,5 +19,5 @@ void main() {
     VERT_OUT_COLOR = vec4(vec3(IN_COLOR * (t * t)), 1.0);
     // NOTE: Multiplication order matters!
     gl_Position = U_PROJECTION * U_VIEW * IN_TRANSLATE * U_TRANSFORM *
-                  U_MODEL * vec4(IN_POSITION, 1.0);
+        U_MODEL * vec4(IN_POSITION, 1.0);
 }
