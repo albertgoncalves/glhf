@@ -461,7 +461,7 @@ static void set_frame(Frame* frame) {
                "eye    :%8.2f%8.2f%8.2f\n"
                "target :%8.2f%8.2f%8.2f\n"
                "up     :%8.2f%8.2f%8.2f\n",
-               frame->fps_count / (now - frame->fps_time) * MICROSECONDS,
+               (frame->fps_count / (now - frame->fps_time)) * MICROSECONDS,
                VIEW_EYE.x,
                VIEW_EYE.y,
                VIEW_EYE.z,
