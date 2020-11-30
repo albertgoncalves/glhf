@@ -53,18 +53,16 @@ typedef struct {
 static const f32 FRAME_DURATION = (1.0f / 60.0f) * MICROSECONDS;
 static const f32 FRAME_UPDATE_STEP = FRAME_DURATION / FRAME_UPDATE_COUNT;
 
-static i32 WINDOW_WIDTH = 1024;
-static i32 WINDOW_HEIGHT = 768;
+#define INIT_WINDOW_WIDTH  1024
+#define INIT_WINDOW_HEIGHT 768
+
+static i32 WINDOW_WIDTH = INIT_WINDOW_WIDTH;
+static i32 WINDOW_HEIGHT = INIT_WINDOW_HEIGHT;
 
 #define FBO_SCALE 4
 
-static i32 FBO_WIDTH;
-static i32 FBO_HEIGHT;
-
-static void init_fbo_globals(void) {
-    FBO_WIDTH = WINDOW_WIDTH / FBO_SCALE;
-    FBO_HEIGHT = WINDOW_HEIGHT / FBO_SCALE;
-}
+static const i32 FBO_WIDTH = INIT_WINDOW_WIDTH / FBO_SCALE;
+static const i32 FBO_HEIGHT = INIT_WINDOW_HEIGHT / FBO_SCALE;
 
 // clang-format off
 static const f32 POSITIONS_COLORS[] = {
@@ -289,15 +287,18 @@ static GLFWwindow* get_window(const char* name) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow* window =
-        glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, name, NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(INIT_WINDOW_WIDTH,
+                                          INIT_WINDOW_HEIGHT,
+                                          name,
+                                          NULL,
+                                          NULL);
     if (!window) {
         glfwTerminate();
         ERROR("!window");
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetWindowAspectRatio(window, WINDOW_WIDTH, WINDOW_HEIGHT);
+    glfwSetWindowAspectRatio(window, INIT_WINDOW_WIDTH, INIT_WINDOW_HEIGHT);
     // NOTE: While mouse *does* get locked to center of window, it remains
     // visible. See `https://github.com/glfw/glfw/issues/1790`.
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -448,7 +449,6 @@ static void set_objects(void) {
         }
         CHECK_GL_ERROR();
     }
-    init_fbo_globals();
     {
         glGenRenderbuffers(1, &RBO);
         glBindRenderbuffer(GL_RENDERBUFFER, RBO);
