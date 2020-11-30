@@ -53,8 +53,18 @@ typedef struct {
 static const f32 FRAME_DURATION = (1.0f / 60.0f) * MICROSECONDS;
 static const f32 FRAME_UPDATE_STEP = FRAME_DURATION / FRAME_UPDATE_COUNT;
 
-#define WINDOW_WIDTH  1024
-#define WINDOW_HEIGHT 768
+static i32 WINDOW_WIDTH = 1024;
+static i32 WINDOW_HEIGHT = 768;
+
+#define FBO_SCALE 4
+
+static i32 FBO_WIDTH;
+static i32 FBO_HEIGHT;
+
+static void init_fbo_globals(void) {
+    FBO_WIDTH = WINDOW_WIDTH / FBO_SCALE;
+    FBO_HEIGHT = WINDOW_HEIGHT / FBO_SCALE;
+}
 
 // clang-format off
 static const f32 POSITIONS_COLORS[] = {
@@ -165,6 +175,9 @@ static u32 VAO;
 static u32 VBO;
 static u32 EBO;
 static u32 IBO;
+static u32 FBO;
+static u32 RBO;
+static u32 DBO;
 
 static const u32 INDEX_POSITION = 0;
 static const u32 INDEX_COLOR = 1;
@@ -179,6 +192,30 @@ static void show_cursor(Native native) {
     XFixesShowCursor(native.display, native.window);
     XFlush(native.display);
 }
+
+#define CHECK_GL_ERROR()                               \
+    {                                                  \
+        switch (glGetError()) {                        \
+        case GL_INVALID_ENUM: {                        \
+            ERROR("GL_INVALID_ENUM");                  \
+        }                                              \
+        case GL_INVALID_VALUE: {                       \
+            ERROR("GL_INVALID_VALUE");                 \
+        }                                              \
+        case GL_INVALID_OPERATION: {                   \
+            ERROR("GL_INVALID_OPERATION");             \
+        }                                              \
+        case GL_INVALID_FRAMEBUFFER_OPERATION: {       \
+            ERROR("GL_INVALID_FRAMEBUFFER_OPERATION"); \
+        }                                              \
+        case GL_OUT_OF_MEMORY: {                       \
+            ERROR("GL_OUT_OF_MEMORY");                 \
+        }                                              \
+        case GL_NO_ERROR: {                            \
+            break;                                     \
+        }                                              \
+        }                                              \
+    }
 
 #define NORM_CROSS(a, b) norm_vec3(cross_vec3(a, b))
 
@@ -241,8 +278,11 @@ static void init_cursor_callback(GLFWwindow* window, f64 x, f64 y) {
     glfwSetCursorPosCallback(window, cursor_callback);
 }
 
-static void framebuffer_size_callback(GLFWwindow* _, i32 width, i32 height) {
-    glViewport(0, 0, width, height);
+static void framebuffer_size_callback(GLFWwindow* window,
+                                      i32         width,
+                                      i32         height) {
+    WINDOW_WIDTH = width;
+    WINDOW_HEIGHT = height;
 }
 
 static GLFWwindow* get_window(const char* name) {
@@ -359,6 +399,7 @@ static void set_vertex_attrib(u32 index, i32 size, i32 stride, void* offset) {
 static void set_objects(void) {
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
+    CHECK_GL_ERROR();
     {
         glGenBuffers(1, &VBO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -377,6 +418,7 @@ static void set_objects(void) {
                           color_width,
                           stride,
                           (void*)(sizeof(f32) * (usize)position_width));
+        CHECK_GL_ERROR();
     }
     {
         glGenBuffers(1, &EBO);
@@ -385,6 +427,7 @@ static void set_objects(void) {
                      sizeof(INDICES),
                      INDICES,
                      GL_STATIC_DRAW);
+        CHECK_GL_ERROR();
     }
     {
         set_translations();
@@ -403,8 +446,43 @@ static void set_objects(void) {
             set_vertex_attrib(index, 4, stride, (void*)(i * offset));
             glVertexAttribDivisor(index, 1);
         }
+        CHECK_GL_ERROR();
     }
+    init_fbo_globals();
+    {
+        glGenRenderbuffers(1, &RBO);
+        glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB, FBO_WIDTH, FBO_HEIGHT);
+        CHECK_GL_ERROR();
+    }
+    {
+        glGenRenderbuffers(1, &DBO);
+        glBindRenderbuffer(GL_RENDERBUFFER, DBO);
+        glRenderbufferStorage(GL_RENDERBUFFER,
+                              GL_DEPTH_COMPONENT,
+                              FBO_WIDTH,
+                              FBO_HEIGHT);
+        CHECK_GL_ERROR();
+    }
+    {
+        glGenFramebuffers(1, &FBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER,
+                                  GL_COLOR_ATTACHMENT0,
+                                  GL_RENDERBUFFER,
+                                  RBO);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER,
+                                  GL_DEPTH_ATTACHMENT,
+                                  GL_RENDERBUFFER,
+                                  DBO);
+        CHECK_GL_ERROR();
+    }
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        CHECK_GL_ERROR();
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glEnable(GL_DEPTH_TEST);
+    CHECK_GL_ERROR();
 }
 
 static Uniforms get_uniforms(u32 program) {
@@ -422,30 +500,57 @@ static void set_static_uniforms(Uniforms uniforms) {
     MODEL = mul_mat4(rotate_mat4(get_radians(MODEL_DEGREES), MODEL_AXIS),
                      scale_mat4(MODEL_SCALE));
     glUniformMatrix4fv(uniforms.model, 1, FALSE, &MODEL.cell[0][0]);
+    CHECK_GL_ERROR();
+}
+
+static void set_dynamic_uniforms(Uniforms uniforms, State state) {
     PROJECTION = perspective_mat4(get_radians(45.0f),
                                   (f32)WINDOW_WIDTH / (f32)WINDOW_HEIGHT,
                                   VIEW_NEAR,
                                   VIEW_FAR);
     glUniformMatrix4fv(uniforms.projection, 1, FALSE, &PROJECTION.cell[0][0]);
-}
-
-static void set_dynamic_uniforms(Uniforms uniforms, State state) {
     glUniform1f(uniforms.time, state.time);
     VIEW = look_at_mat4(VIEW_EYE, add_vec3(VIEW_EYE, VIEW_TARGET), VIEW_UP);
     glUniformMatrix4fv(uniforms.view, 1, FALSE, &VIEW.cell[0][0]);
     TRANSFORM =
         rotate_mat4(get_radians((f32)state.time * 25.0f), TRANSFORM_AXIS);
     glUniformMatrix4fv(uniforms.transform, 1, FALSE, &TRANSFORM.cell[0][0]);
+    CHECK_GL_ERROR();
 }
 
 static void draw(GLFWwindow* window) {
-    glBindVertexArray(VAO);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDrawElementsInstanced(GL_TRIANGLES,
-                            sizeof(INDICES) / sizeof(INDICES[0]),
-                            GL_UNSIGNED_INT,
-                            (void*)POSITION_OFFSET,
-                            COUNT_TRANSLATIONS);
+    {
+        // NOTE: Bind off-screen render target.
+        glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        glViewport(0, 0, FBO_WIDTH, FBO_HEIGHT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+    {
+        // NOTE: Draw scene.
+        glBindVertexArray(VAO);
+        glDrawElementsInstanced(GL_TRIANGLES,
+                                sizeof(INDICES) / sizeof(INDICES[0]),
+                                GL_UNSIGNED_INT,
+                                (void*)POSITION_OFFSET,
+                                COUNT_TRANSLATIONS);
+    }
+    {
+        // NOTE: Blit off-screen to on-screen.
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, FBO);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        glBlitFramebuffer(0,
+                          0,
+                          FBO_WIDTH,
+                          FBO_HEIGHT,
+                          0,
+                          0,
+                          WINDOW_WIDTH,
+                          WINDOW_HEIGHT,
+                          GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
+                          GL_NEAREST);
+    }
     glfwSwapBuffers(window);
 }
 
@@ -549,6 +654,9 @@ i32 main(i32 n, const char** args) {
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
     glDeleteBuffers(1, &IBO);
+    glDeleteFramebuffers(1, &FBO);
+    glDeleteRenderbuffers(1, &RBO);
+    glDeleteRenderbuffers(1, &DBO);
     glDeleteProgram(program);
     glfwTerminate();
     free(memory);
