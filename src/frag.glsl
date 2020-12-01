@@ -2,10 +2,10 @@
 
 precision mediump float;
 
-in vec4 VERT_OUT_COLOR;
+in vec3 VERT_OUT_COLOR;
 
 #define K 5
 
 void main() {
-    gl_FragColor = vec4(floor(VERT_OUT_COLOR.rgb * K) / K, 1.0);
+    gl_FragColor = vec4(round(VERT_OUT_COLOR * K) / K, 1.0);
 }
