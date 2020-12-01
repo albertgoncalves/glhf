@@ -28,8 +28,8 @@ typedef struct {
 
 typedef struct {
     i32 model;
-    i32 projection;
     i32 time;
+    i32 projection;
     i32 view;
     i32 transform;
 } Uniforms;
@@ -488,8 +488,8 @@ static void set_objects(void) {
 static Uniforms get_uniforms(u32 program) {
     Uniforms uniforms = {
         .model = glGetUniformLocation(program, "U_MODEL"),
-        .projection = glGetUniformLocation(program, "U_PROJECTION"),
         .time = glGetUniformLocation(program, "U_TIME"),
+        .projection = glGetUniformLocation(program, "U_PROJECTION"),
         .view = glGetUniformLocation(program, "U_VIEW"),
         .transform = glGetUniformLocation(program, "U_TRANSFORM"),
     };
@@ -504,12 +504,12 @@ static void set_static_uniforms(Uniforms uniforms) {
 }
 
 static void set_dynamic_uniforms(Uniforms uniforms, State state) {
+    glUniform1f(uniforms.time, state.time);
     PROJECTION = perspective_mat4(get_radians(45.0f),
                                   (f32)WINDOW_WIDTH / (f32)WINDOW_HEIGHT,
                                   VIEW_NEAR,
                                   VIEW_FAR);
     glUniformMatrix4fv(uniforms.projection, 1, FALSE, &PROJECTION.cell[0][0]);
-    glUniform1f(uniforms.time, state.time);
     VIEW = look_at_mat4(VIEW_EYE, add_vec3(VIEW_EYE, VIEW_TARGET), VIEW_UP);
     glUniformMatrix4fv(uniforms.view, 1, FALSE, &VIEW.cell[0][0]);
     TRANSFORM =
